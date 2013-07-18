@@ -1,10 +1,12 @@
 package com.bulletphysics;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -82,15 +84,22 @@ public class BasicDemo extends DemoApplication {
 	
 
 	private static ObjectArrayList<RigidBody> termites= new ObjectArrayList<RigidBody>();
-	private static int numOfTermites=2;
+	private static int numOfTermites=22;
 	private static int[] states=new int[numOfTermites];
 	private static float termiteRadius=6;
     private static float termiteLen=26;
     private float termiteHeight=-6;
     private static ArrayList<ArrayList<Vector3f>> positionList= new ArrayList<ArrayList<Vector3f>>();
     private static ArrayList<ArrayList<Quat4f>> orientationList= new ArrayList<ArrayList<Quat4f>>();
-     private static float time=0;
-      
+    private static float time=0; 
+     
+ 	private static int totalDataNum=11989;
+ 	//result(caseCount,3,caseNum) in matlab
+ 	private float[][][] trackingData=new float[totalDataNum][3][27];
+	private String caseDataPath="D:\\Yixin\\model\\Case_Data_Model_2.txt";
+	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
+	private int[] caseCount=new int[27];
+ 	
 	public BasicDemo(IGL gl) {super(gl);}  
 	public static ObjectArrayList<RigidBody> getTermites(){	return termites;}	
 	public static ArrayList<ArrayList<Vector3f>> getPositionList(){return positionList;}	
@@ -264,7 +273,7 @@ public class BasicDemo extends DemoApplication {
 			if (isDynamic3) {terShape.calculateLocalInertia(mass3, localInertia3);}
 			
 			//initialize the termite location at random. Add the position to positionList
-			double radius = (Math.random()*(dishRadius-4)); //Math.random() returns a double value between 0.0 and 1.0 between 0 and the radius of the circle
+			double radius = (Math.random()*(dishRadius-20)); //Math.random() returns a double value between 0.0 and 1.0 between 0 and the radius of the circle
 			float angle = (float) (Math.random()*2*Math.PI); // between 0 and 360 (degrees)  
 			float x =(float) (radius*Math.cos(angle));
 			float y = (float) (radius*Math.sin(angle)); 
@@ -298,6 +307,15 @@ public class BasicDemo extends DemoApplication {
 			orientationList.add(individualOriList);
 		}
 		clientResetScene();
+		
+		
+		this.caseCount=readCaseCount(caseCountPath);
+		int highest = caseCount[0]; // note: don't do this if the array could be empty
+		for(int i = 1; i < caseCount.length; i++) {
+		    if(highest<caseCount[i]) highest = caseCount[i];
+		}
+		this.totalDataNum=highest;
+		this.trackingData= readDistributionData(caseDataPath, totalDataNum);
 	}
 	
 	/**
@@ -308,11 +326,59 @@ public class BasicDemo extends DemoApplication {
 		
 	}
 	
-	public void drawLine(Vector3f from, Vector3f to, Vector3f color) {
-		// TODO Auto-generated method stub
-		//gl.GLDebugDrawer.drawLine(from, to,color); 
-		dynamicsWorld.getDebugDrawer().drawLine(from,to,color);
+	   /**
+	    * TODO: check the input data
+	 * @return 
+	    * 
+	    */
+	public static float[][][] readDistributionData(String filePath,int totalDataNum) {
+			float[][][] result= new float[totalDataNum][3][27];
+			byte[] buffer = new byte[(int) new File(filePath).length()];
+			    BufferedInputStream f = null;
+			    try {f = new BufferedInputStream(new FileInputStream(filePath));
+			        f.read(buffer);
+			        if (f != null) try { f.close(); } catch (IOException ignored) { }} 
+		        catch (IOException ignored) { System.out.println("File not found or invalid path.");}			    
+			   
+			    String[] lines=new String(buffer).split("\\s+");
+			   for  (int  count=0;count<lines.length;count++){
+			    //  System.out.println(lines[count]);
+			    		  BigDecimal number = new BigDecimal(lines[count]);
+				    	  String numWithNoExponents = number.toPlainString();
+				    	  float num=Float.valueOf(numWithNoExponents);
+				    	  int onePlane=totalDataNum*3;
+				    	  
+				    	  int z=(int) Math.floor(count/onePlane);
+				    	  int nowInOnePlane=count%onePlane;
+				    	  
+				    	  int mod=nowInOnePlane%totalDataNum;
+				    	  int div=(int)Math.floor(nowInOnePlane/totalDataNum);
+				    	  
+				          result[mod][div][z]= num;
+				          if(mod==11988 && div==2 && z==26){break;}
+				          //System.out.println("result["+mod +"]["+div+"]["+z+"]="+result[mod][div][z]);
+				   
+			   }
+			return result;
+		}
+	
+	
+	
+	public static int[] readCaseCount(String filePath) {
+		int[] result=new int[27];
+		byte[] buffer = new byte[(int) new File(filePath).length()];
+	    BufferedInputStream f = null;
+	    try {f = new BufferedInputStream(new FileInputStream(filePath));
+	        f.read(buffer);
+	        if (f != null) try { f.close(); } catch (IOException ignored) { }} 
+        catch (IOException ignored) { System.out.println("File not found or invalid path.");}			    
+	    String[] strings=(new String(buffer)).split("\\s+");
+	    for (int i=0; i<strings.length;i++){
+	    	result[i]=Integer.valueOf(strings[i]);
+	    }
+		return result;
 	}
+	
 	
 	public static void main(String[] args) throws LWJGLException {
 		BasicDemo ccdDemo = new BasicDemo(LWJGL.getGL());

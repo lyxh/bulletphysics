@@ -35,16 +35,16 @@ import com.bulletphysics.BasicDemo;
  *
  */
 public class Model2 extends InternalTickCallback{	
-	private static int range=5;//how far away the termite could sense
-	private static float termiteHalfLen=2;
+	private static int range=20;//how far away the termite could sense
+	private static float termiteHalfLen;
 	private static int[] values=new int[4];
 	private static double angleRange=Math.PI/2;
 	private static float dishRadius=BasicDemo.getDishRadius();
-	private static float small_dis=2;
-	private static float large_dis=10;
-	private static int totalDataNum=5*19000;
+	private static float small_dis=5;
+	private static float large_dis=20;
+	private static int totalDataNum=11989;
 	//result(caseCount,3,caseNum) in matlab
-	private int[][][] trackingData=new int[totalDataNum][3][27];
+	private static float[][][] trackingData=new float[totalDataNum][3][27];
 	private int[] caseCount=new int[27];
 	public static int[] inputDistribution= new int[27];
 	private int pullDownForce=5;
@@ -59,8 +59,14 @@ public class Model2 extends InternalTickCallback{
 	public Model2(DynamicsWorld dy, IGL gl) {
 		this.dynamicsWorld=dy;
 		this.gl=gl;
-		this.trackingData= readDistributionData(caseDataPath);
+		/*this.trackingData= readDistributionData(caseDataPath);
 		this.caseCount=readCaseCount(caseCountPath);
+		int highest = caseCount[0]; // note: don't do this if the array could be empty
+		for(int i = 1; i < caseCount.length; i++) {
+		    if(highest<caseCount[i]) highest = caseCount[i];
+		}
+		this.totalDataNum=highest;
+		*/
 	}
 	
 
@@ -146,25 +152,12 @@ public class Model2 extends InternalTickCallback{
 			
 			//Get the input case number
 			int caseNum=values[0]+values[1]*3+values[3]*3*3;
+			System.out.println(caseNum);
 			inputDistribution[caseNum]+=1;
-			
-			//Get the corresponding data for this case
 			int caseCount=this.caseCount[caseNum];
-			int[][] caseData= new int[caseCount][3];
-			/*
-			int[][][] a = new int[4][3][2];
-			System.out.println(a.length);  // 4
-			System.out.println(a[0].length); // 3
-			System.out.println(a[0][0].length); //2
-			*/
-			for (int i=0;i<caseCount;i++){
-				for(int j1=0; j1<=2;j1++){
-					caseData[i][j1]=this.trackingData[i][j1][caseNum];
-				}
-			}
 			
 			//1.set velocity
-			Vector3f localforce=getForceAngleFromDistribution(caseData);
+			Vector3f localforce=getForceAngleFromDistribution(caseNum,caseCount);
 			float rotatedAngle=localforce.z;
 			Vector3f globalForce=getGlobalForce(localforce,body);
 			globalForce.z=pullDownForce;
@@ -202,13 +195,22 @@ public class Model2 extends InternalTickCallback{
 	 * @param data
 	 * @return
 	 */
-	 private Vector3f getForceAngleFromDistribution(int[][] caseData) {
-		int count=caseData.length;
-        int random=(int) (Math.random()*(float)count);
-        if(random>=count){random=count-1;}
-        float x=caseData[random][1];
-        float y=caseData[random][2];
-        float angle=caseData[random][3];
+	 private Vector3f getForceAngleFromDistribution(int caseNum, int caseCount) {
+			/*
+			 * float[][] caseData= new float[caseCount][3];
+			for (int i=0;i<caseCount;i++){
+				for(int j1=0; j1<=2;j1++){
+					caseData[i][j1]=this.trackingData[i][j1][caseNum];
+					//System.out.println("caseData["+i+"]["+j1+"]="+caseData[i][j1]);
+				}
+			}
+		*/	
+			
+        int random=(int) (Math.random()*(float)caseCount);
+        if(random>=caseCount & (int)caseCount!=0){random=caseCount-1;}
+        float x=this.trackingData[random][0][caseNum];
+        float y=this.trackingData[random][1][caseNum];
+        float angle=this.trackingData[random][2][caseNum];
 		Vector3f force=new Vector3f(x,y,angle);
 		return force;
 	}
@@ -220,29 +222,31 @@ public class Model2 extends InternalTickCallback{
  * @return 
     * 
     */
-	private int[][][] readDistributionData(String filePath) {
-		System.out.println(filePath);
-		int[][][] result= new int[totalDataNum][3][27];
+	private float[][][] readDistributionData(String filePath) {
+		float[][][] result= new float[totalDataNum][3][27];
 		byte[] buffer = new byte[(int) new File(filePath).length()];
 		    BufferedInputStream f = null;
 		    try {f = new BufferedInputStream(new FileInputStream(filePath));
 		        f.read(buffer);
 		        if (f != null) try { f.close(); } catch (IOException ignored) { }} 
 	        catch (IOException ignored) { System.out.println("File not found or invalid path.");}			    
-		    String lines[] = new String(buffer).split("\\r?\\n");
-		  
-		   for  (int  caseNum=0;caseNum<lines.length;caseNum++){  
-		       	String[] strings=(lines[caseNum]).split("\\s+");
-			    for (int i=0; i<strings.length;i++){
-			    	  Integer num=Integer.valueOf(strings[i]);
+		   
+		    String[] lines=new String(buffer).split("\\s+");
+		   for  (int  count=1;count<=lines.length;count++){
+		    //  System.out.println(lines[count]);
+		    		  BigDecimal number = new BigDecimal(lines[count]);
+			    	  String numWithNoExponents = number.toPlainString();
+			    	  float num=Float.valueOf(numWithNoExponents);
 			    	  int onePlane=totalDataNum*3;
-			    	//z=caseNum  int z=i/onePlane;
-			    	//nowInOnePlane=i  int nowInOnePlan=z%onePlane;
-			    	  int mod=i%totalDataNum;
-			    	  int div=i/totalDataNum;
-			          result[mod][div][caseNum]=(int) num;
-			          System.out.println("result["+mod +"]["+div+"]["+caseNum+"]="+result[mod][div][caseNum]);
-			   }
+			    	   int z=(int) Math.floor(count/onePlane);
+			    	   int nowInOnePlane=count%onePlane;
+			    	  int mod=nowInOnePlane%totalDataNum;
+			    	  int div=(int)Math.floor(nowInOnePlane/totalDataNum);
+			    	  
+			          result[mod][div][z]= num;
+			          if(mod==11988 && div==2 && z==26){break;}
+			          //System.out.println("result["+mod +"]["+div+"]["+z+"]="+result[mod][div][z]);
+			   
 		   }
 		return result;
 	}
@@ -332,4 +336,15 @@ public class Model2 extends InternalTickCallback{
 			gl.glEnd();
 		}
 	   
+		
+		public static float[][] getCaseData(int caseCount, int caseNum, float[][][] trackingData){
+			float[][] caseData= new float[caseCount][3];
+		    for (int i=0;i<caseCount;i++){
+				for(int j1=0; j1<=2;j1++){
+					caseData[i][j1]=trackingData[i][j1][caseNum];
+					System.out.println("caseData["+i+"]["+j1+"]="+caseData[i][j1]);
+				}
+		     }
+		    return caseData;
+		    }
 	}

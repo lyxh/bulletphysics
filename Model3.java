@@ -6,9 +6,19 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+
+import javax.vecmath.Matrix3f;
+import javax.vecmath.Matrix4f;
 import javax.vecmath.Quat4f;
+import javax.vecmath.Tuple2d;
 import javax.vecmath.Vector3f;
+import javax.vecmath.Vector4f;
+
+import com.bulletphysics.collision.dispatch.CollisionObject;
+import com.bulletphysics.collision.narrowphase.ManifoldPoint;
+import com.bulletphysics.collision.narrowphase.PersistentManifold;
 import com.bulletphysics.demos.opengl.IGL;
 import com.bulletphysics.dynamics.DynamicsWorld;
 import com.bulletphysics.dynamics.InternalTickCallback;
@@ -18,47 +28,43 @@ import com.bulletphysics.linearmath.Transform;
 import com.bulletphysics.util.ObjectArrayList;
 import com.bulletphysics.BasicDemo;
 
-
-
 /**
- * The simplest model that let the termite walk straight forward. When there is a wall on the way, move back and turn a random angle.
- * TODO: 
- * 1. termites change direction after bouncing off wall(especially vertical)
- * 2. termites could get stuck along the wall? Why?
- * 3. termites could cycle around a small area(apply the same rotation multiple times?)
- * 4. should apply a transformed force or directly rotate the termties? Seems like that apply a transformed force is better
+ * The model that use the transition probability from the txt file.
+ * At each step, three parameters are independently determined:x,y,angle.
+ * Seems to be wrong....
  * @author ssr
  *
  */
-public class Model0 extends InternalTickCallback{	
-	private static int range=20;//how far away the termite could sense
+public class Model3 extends InternalTickCallback{	
+	private static int range=30;//how far away the termite could sense
 	private static float termiteHalfLen;
-	private static float termiteRadius;
 	private static int[] values=new int[4];
 	private static double angleRange=Math.PI/2;
 	private static float dishRadius=BasicDemo.getDishRadius();
-	private static float small_dis=5;
-	private static float large_dis=20;
-	//private int[][] distribution= readDistributionData();
+	private static float small_dis=10;
+	private static float large_dis=50;
+	private static String filePath="D:\\Yixin\\model\\Case_Avg_Data_Model_2.txt";
+	private float[][] distribution= new float[3][27];
 	public static int[] inputDistribution= new int[27];
+	private int pullDownForce=1;
 	private DynamicsWorld dynamicsWorld;
 	private IGL gl;
-	private static int continuing=1;
-	public Model0(DynamicsWorld dy, IGL gl) {
-		this.dynamicsWorld=dy;
-		this.gl=gl;
-	}
-
+	private static int continuing=5;
+	
 	public static int[] getInputDis(){return inputDistribution;}
 	
 	
-	//TODO: match the video
-	//TODO: annotate the assumption
+	public Model3(DynamicsWorld dy, IGL gl) {
+		this.dynamicsWorld=dy;
+		this.gl=gl;
+		this.distribution=readDistributionData(filePath);
+	}
+	
+
 	public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {	
 		ObjectArrayList<RigidBody> termites= BasicDemo.getTermites();
 		ArrayList<ArrayList<Vector3f>> posList=BasicDemo.getPositionList();
 		ArrayList<ArrayList<Quat4f>> oriList=BasicDemo.getOrientationList();
-	//	readDistributionData();
 	    for (int j=0; j<termites.size(); j++) {
 	    	RigidBody body= termites.get(j);	
 			Vector3f position= new Vector3f(0,0,0);
@@ -67,27 +73,22 @@ public class Model0 extends InternalTickCallback{
 			Quat4f orientation=new Quat4f();
 			orientation=body.getOrientation(orientation);
 			posList.get(j).add(position);
-			//System.out.println(position.z);
 			oriList.get(j).add(orientation);
 			
 			//for each termite, classify the input condition
 			float center_x=position.x;
 			float center_y=position.y;
 			float angle=getAngle(orientation);
-			//System.out.println(angle);
 			//position, angle correct 
 			float terLen=BasicDemo.getTermiteLen();
 			termiteHalfLen=(terLen/2);
-			termiteRadius=BasicDemo.getTermiteRad();
 			float head_x=(float) (center_x+termiteHalfLen*Math.cos(angle));
 			float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
+			float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
+			float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
 			
 
 			
-			float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
-			float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
-			//System.out.println("Head: "+head_x+" "+head_y);
-			//System.out.println("Tail: "+tail_x+" "+tail_y);
 			//1.check for wall.tested
 			for (int dir=0;dir<4;dir++){
 				values[dir]=0;
@@ -119,35 +120,28 @@ public class Model0 extends InternalTickCallback{
 						float angleChange=getAngleChange(angle, dis_angle);
 						int direction=getDirectionFromAngle((double)angleChange);
 						values[direction]=2;	
+						//System.out.println("Angle 1: "+angle/Math.PI*180);
+						//System.out.println("Angle 2: "+dis_angle/Math.PI*180);
+						//System.out.println(angleChange/Math.PI*180);					
+						//System.out.println("Direction: " +(direction+1));		
+						//Also check for other termite head and tail?			
 					}
 				}
+				
 			}
 			
 			//Get the input case number
 			int caseNum=values[0]+values[1]*3+values[3]*3*3;
-			Vector3f localforce=new Vector3f(20,0,10);
-			int[] states=BasicDemo.getStates();
-		    if (values[0]==1){
-		    	float rotatedAngle=0;
-				//detects a wall, back up and turn randomly
-				Transform tr=new Transform();
-				tr=body.getCenterOfMassTransform(tr);
-				//positive angle: to the right, rotate to the right
-			    if (values[1]==0){ rotatedAngle=(float) ((float)-Math.PI/4);}//(Math.random()*Math.PI/2-Math.PI/4);
-			    if (values[3]==0){ rotatedAngle=(float) ((float)Math.PI/4);}
-			   // tr.basis.rotZ(rotatedAngle);
-			   // body.setCenterOfMassTransform(tr);
-			    //localforce=rotate(rotatedAngle,localforce);
-					//localforce=new Vector3f(-20,0,10);
-					localforce=rotate(rotatedAngle,localforce);
-				
-			}
+			//System.out.println("Case "+caseNum);
+			Vector3f localforce=new Vector3f(distribution[0][caseNum]*2,distribution[1][caseNum]*4,0);
 			
-			//Vector3f globalForce=getGlobalForce(localforce,body);
-			Vector3f globalForce=rotate(angle,localforce);
-			drawLine(position,new Vector3f(position.x+globalForce.x*2,position.y+globalForce.y*2,position.z ),new Vector3f(1,1,0));
-			
-			
+			//System.out.println(localforce);
+			float rotatedAngle=-distribution[2][caseNum]*50;
+			Transform tr=new Transform();
+			tr=body.getCenterOfMassTransform(tr);
+		    tr.basis.rotZ(rotatedAngle);	    
+		    body.setCenterOfMassTransform(tr);
+		    
 			//draw the termites direction
 			Vector3f from=new Vector3f(head_x,head_y,position.z);
 			float front_to_x=(float) (head_x+range*Math.cos(angle));
@@ -166,21 +160,25 @@ public class Model0 extends InternalTickCallback{
 			drawLine(from,front_to,color);
 			drawLine(from,left_to,color);
 			drawLine(from,right_to,color);
+			localforce=rotate(rotatedAngle, localforce);
+			Vector3f globalForce=rotate(angle,localforce);
+			drawLine(position,new Vector3f(position.x+globalForce.x*3,position.y+globalForce.y*3,position.z ),new Vector3f(1,1,0));
 			
 			
+			globalForce.z=pullDownForce;
 			body.setLinearVelocity(globalForce);
-		}
-		
-      
-		}
+	    }
+	}
 	
 	
-	private void drawLine(Vector3f from, Vector3f to,Vector3f color) {
-		gl.glBegin(GL_LINES);
-		gl.glColor3f(color.x, color.y, color.z);
-		gl.glVertex3f(from.x, from.y, from.z);
-		gl.glVertex3f(to.x, to.y, to.z);
-		gl.glEnd();
+	private float getAngleFromDistribution(int[] caseData) {
+		float angle = 0;
+		float angleCaseNum=caseData[0]+caseData[1]+caseData[2];
+		float random=(float) (Math.random());
+		if (random<caseData[0]/angleCaseNum){angle=0;}
+		if (random>=caseData[0]/angleCaseNum && random<(caseData[0]+caseData[0])/angleCaseNum){angle=(float) ((float) 1.57/Math.PI*-1);} //turn left
+		else{angle=(float) ((float) 1.57/Math.PI*180);} //turn right
+		return angle;
 	}
 
 	/**
@@ -199,94 +197,14 @@ public class Model0 extends InternalTickCallback{
 		return angle;
 	}
 
-	/**
-	 * 
-	 * @param data
-	 * @return
-	 */
-	 private Vector3f getForceFromDistribution(int[] caseData) {
-		 //first, generate the angle turned
-		float angle = 0;
-		float angleCaseNum=caseData[0]+caseData[1]+caseData[2];
-		float random=(float) (Math.random());
-		if (random<caseData[0]/angleCaseNum){angle=0;}
-		if (random>=caseData[0]/angleCaseNum && random<(caseData[0]+caseData[0])/angleCaseNum){angle=90;} //turn left
-		else{angle=-90;} //turn right
-		
-		//generate x and y distances
-		float x=0;
-		float xCaseNum=caseData[3]+caseData[4]+caseData[5]+caseData[6]+caseData[7];
-		float random_x=(float) (Math.random());
-		float one=caseData[3]/xCaseNum;
-		float two=(caseData[3]+caseData[4])/xCaseNum;
-		float three=(caseData[3]+caseData[4]+caseData[5])/xCaseNum;
-		float four=(caseData[3]+caseData[4]+caseData[5]+caseData[6])/xCaseNum;
-		//System.out.println(one+" "+two+" "+three+" "+four);
-		if (random_x<one){x=0;}
-		else if (random_x>=one && random_x<two){x=small_dis;} 
-		else if (random_x>=two && random_x<three){x=large_dis;} 
-		else if (random_x>=three && random_x<four){x=-small_dis;} 
-		else if (random_x>=four){x=-large_dis;} 
-		
-		
-		float y=0;
-		float yCaseNum=caseData[8]+caseData[9]+caseData[10]+caseData[11]+caseData[12];
-		float random_y=(float) (Math.random());
-		float one_y=caseData[8]/yCaseNum;
-		float two_y=(caseData[8]+caseData[9])/yCaseNum;
-		float three_y=(caseData[8]+caseData[9]+caseData[10])/yCaseNum;
-		float four_y=(caseData[8]+caseData[9]+caseData[10]+caseData[11])/yCaseNum;
-		if (random_y<one_y){y=0;}
-		else if (random_y>=one_y && random_y<two_y){y=small_dis;} 
-		else if (random_y>=two_y && random_y<three_y){y=large_dis;} 
-		else if (random_y>=three_y && random_y<four_y){y=-1*small_dis;} 
-		else if (random_y>=four_y){y=-1*large_dis;} 
-
-		// Now, without rotation.
-		Float[] newxy=rotate(angle,x,y);
-		//from angle,x,y,generate a force
-		//Vector3f force=new Vector3f((float)newxy[0],(float)newxy[1],(float)0);
-		//how to rotate the rigidbody?
-		Vector3f force=new Vector3f(x,y,0);
-		return force;
-	}
-
 	 
-	 
-	 /**
-	  * Rotate a vector(x,y) by some degrees angle
-	  * @param angle
-	  * @param x
-	  * @param y
-	  * @return
-	  */
-	 public Float[] rotate(float angle,float x,float y){
-	      Double originalAngle=Math.atan2(y,x);
-	      Double newAngle=angle+originalAngle;
-	      Float len= (float) Math.sqrt(x*x+y*y);
-	      Float[] result=new Float[2];
-	      result[0]= (float) ((float)len*Math.cos(newAngle));
-	      result[1]=(float) ((float)len*Math.sin(newAngle));
-	      return result;
-	   }
-	 
-	 
-	 public Vector3f rotate(float angle,Vector3f v){
-	      Double originalAngle=Math.atan2(v.y,v.x);
-	      Double newAngle=angle+originalAngle;
-	      Float len= (float) Math.sqrt(v.x*v.x+v.y*v.y);
-	      float x= (float) ((float)len*Math.cos(newAngle));
-	      float y=(float) ((float)len*Math.sin(newAngle));
-	      return new Vector3f(x,y,v.z);
-	   }
 	 
    /**
  * @return 
     * 
     */
-	private int[][] readDistributionData() {
-		int[][] result= new int[13][27];
-		 String filePath="D:\\Yixin\\trajectory analysis\\PherDish11Block1.txt";
+	private float[][] readDistributionData(String filePath) {
+		float[][] result= new float[3][27];
 		 byte[] buffer = new byte[(int) new File(filePath).length()];
 		    BufferedInputStream f = null;
 		    try {f = new BufferedInputStream(new FileInputStream(filePath));
@@ -295,11 +213,13 @@ public class Model0 extends InternalTickCallback{
 	        catch (IOException ignored) { System.out.println("File not found or invalid path.");}			    
 		    String[] strings=(new String(buffer)).split("\\s+");
 		    for (int i=0; i<strings.length;i++){
-		    	  Integer num=Integer.valueOf(strings[i]);
-		    	  int mod=i%13;
-		    	  int div=i/13;
-		          result[mod][div]=(int) num;
-		         // System.out.println("result["+mod +"]["+div+"]="+result[mod][div]);
+		    	BigDecimal number = new BigDecimal(strings[i]);
+		    	  String numWithNoExponents = number.toPlainString();
+		    	  float num=Float.valueOf(numWithNoExponents);
+		    	  int mod=i%3;
+		    	  int div=i/3;
+		          result[mod][div]=num;
+		          //System.out.println("result["+mod +"]["+div+"]="+result[mod][div]);
 		   }
 		    
 		return result;
@@ -309,7 +229,7 @@ public class Model0 extends InternalTickCallback{
 	
      /**
       * front is 0, left is 1, back is 2, right is 3.
-      * @param angle
+      * @param angle in the range of [-pi,pi]
       * @return
       */
 	private int getDirectionFromAngle(double angle) {
@@ -325,7 +245,7 @@ public class Model0 extends InternalTickCallback{
 	
 
 	/**
-	  * 
+	  * Return the angle from the quaternion
 	  * @param orientation
 	  * @return
 	  */
@@ -346,7 +266,7 @@ public class Model0 extends InternalTickCallback{
 	   * Calculate the angle difference between angle 2 and angle 1. Angle2-angle1
 	   * @param angle1
 	   * @param angle2
-	   * @return
+	   * @return the angle difference in the range of [-pi,pi]
 	   */
 	  public float getAngleChange(float angle1, float angle2){
 		  float angleChange=angle2-angle1;
@@ -355,16 +275,38 @@ public class Model0 extends InternalTickCallback{
 			return angleChange;
 	  }
 	  
-
+       /**
+        * Given the body and the force in the body's local coordinates, return the force in the global coordinates.
+        * @param localforce
+        * @param body
+        * @return
+        */
 	   public static Vector3f getGlobalForce(Vector3f localforce, RigidBody body){
 		    Transform t=new Transform();
 			t=body.getMotionState().getWorldTransform(t);
 			Vector3f globalForce=new Vector3f(0,0,0);
-			globalForce.x=localforce.dot(new Vector3f(t.basis.m00, t.basis.m10, 0));
-			globalForce.y=localforce.dot(new Vector3f(t.basis.m01, t.basis.m11, 0));
-			globalForce.z=1;//localforce.dot(new Vector3f(t.basis.m02, t.basis.m12, t.basis.m22));
+			globalForce.x=localforce.dot(new Vector3f(t.basis.m00, t.basis.m10, t.basis.m20));
+			globalForce.y=localforce.dot(new Vector3f(t.basis.m01, t.basis.m11, t.basis.m21));
+			globalForce.z=5;//localforce.dot(new Vector3f(t.basis.m02, t.basis.m12, t.basis.m22));
 	        return globalForce;
 	        }
 	   
+	   
+		private void drawLine(Vector3f from, Vector3f to,Vector3f color) {
+			gl.glBegin(GL_LINES);
+			gl.glColor3f(color.x, color.y, color.z);
+			gl.glVertex3f(from.x, from.y, from.z);
+			gl.glVertex3f(to.x, to.y, to.z);
+			gl.glEnd();
+		}
+		
+		
+		 public Vector3f rotate(float angle,Vector3f v){
+		      Double originalAngle=Math.atan2(v.y,v.x);
+		      Double newAngle=angle+originalAngle;
+		      Float len= (float) Math.sqrt(v.x*v.x+v.y*v.y);
+		      float x= (float) ((float)len*Math.cos(newAngle));
+		      float y=(float) ((float)len*Math.sin(newAngle));
+		      return new Vector3f(x,y,v.z);
+		   }
 	}
-
