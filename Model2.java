@@ -42,9 +42,9 @@ public class Model2 extends InternalTickCallback{
 	private static float dishRadius=BasicDemo.getDishRadius();
 	private static float small_dis=5;
 	private static float large_dis=20;
-	private static int totalDataNum=11989;
-	//result(caseCount,3,caseNum) in matlab
-	private static float[][][] trackingData=new float[totalDataNum][3][27];
+
+
+ 	private ArrayList<float[][]> trackingData=new ArrayList<float[][]>();
 	private int[] caseCount=new int[27];
 	public static int[] inputDistribution= new int[27];
 	private int pullDownForce=5;
@@ -67,7 +67,8 @@ public class Model2 extends InternalTickCallback{
 		}
 		this.totalDataNum=highest;
 		*/
-	}
+		this.trackingData= BasicDemo.getData();
+		this.caseCount=BasicDemo.getCaseCount();}
 	
 
 	public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {	
@@ -195,61 +196,24 @@ public class Model2 extends InternalTickCallback{
 	 * @param data
 	 * @return
 	 */
-	 private Vector3f getForceAngleFromDistribution(int caseNum, int caseCount) {
-			/*
-			 * float[][] caseData= new float[caseCount][3];
-			for (int i=0;i<caseCount;i++){
-				for(int j1=0; j1<=2;j1++){
-					caseData[i][j1]=this.trackingData[i][j1][caseNum];
-					//System.out.println("caseData["+i+"]["+j1+"]="+caseData[i][j1]);
-				}
-			}
-		*/	
-			
-        int random=(int) (Math.random()*(float)caseCount);
-        if(random>=caseCount & (int)caseCount!=0){random=caseCount-1;}
-        float x=this.trackingData[random][0][caseNum];
-        float y=this.trackingData[random][1][caseNum];
-        float angle=this.trackingData[random][2][caseNum];
-		Vector3f force=new Vector3f(x,y,angle);
+	 private Vector3f getForceAngleFromDistribution(int caseNum,int caseCount) {
+        float x=10;
+	    float y=0;
+	    float angle=0;
+		if (caseNum!=0){
+		        int random=(int) (Math.random()*(float)caseCount);
+		        if(random>=caseCount & (int)caseCount!=0){random=caseCount-1;}
+		          x=this.trackingData.get(caseNum)[random][0];
+		          y=this.trackingData.get(caseNum)[random][1];
+		          angle=this.trackingData.get(caseNum)[random][2];
+				
+		 }
+		 Vector3f force=new Vector3f(x,y,angle);
 		return force;
 	}
 
 
 	
-   /**
-    * TODO: check the input data
- * @return 
-    * 
-    */
-	private float[][][] readDistributionData(String filePath) {
-		float[][][] result= new float[totalDataNum][3][27];
-		byte[] buffer = new byte[(int) new File(filePath).length()];
-		    BufferedInputStream f = null;
-		    try {f = new BufferedInputStream(new FileInputStream(filePath));
-		        f.read(buffer);
-		        if (f != null) try { f.close(); } catch (IOException ignored) { }} 
-	        catch (IOException ignored) { System.out.println("File not found or invalid path.");}			    
-		   
-		    String[] lines=new String(buffer).split("\\s+");
-		   for  (int  count=1;count<=lines.length;count++){
-		    //  System.out.println(lines[count]);
-		    		  BigDecimal number = new BigDecimal(lines[count]);
-			    	  String numWithNoExponents = number.toPlainString();
-			    	  float num=Float.valueOf(numWithNoExponents);
-			    	  int onePlane=totalDataNum*3;
-			    	   int z=(int) Math.floor(count/onePlane);
-			    	   int nowInOnePlane=count%onePlane;
-			    	  int mod=nowInOnePlane%totalDataNum;
-			    	  int div=(int)Math.floor(nowInOnePlane/totalDataNum);
-			    	  
-			          result[mod][div][z]= num;
-			          if(mod==11988 && div==2 && z==26){break;}
-			          //System.out.println("result["+mod +"]["+div+"]["+z+"]="+result[mod][div][z]);
-			   
-		   }
-		return result;
-	}
 
 	
 	private int[] readCaseCount(String filePath) {
@@ -342,7 +306,7 @@ public class Model2 extends InternalTickCallback{
 		    for (int i=0;i<caseCount;i++){
 				for(int j1=0; j1<=2;j1++){
 					caseData[i][j1]=trackingData[i][j1][caseNum];
-					System.out.println("caseData["+i+"]["+j1+"]="+caseData[i][j1]);
+					//System.out.println("caseData["+i+"]["+j1+"]="+caseData[i][j1]);
 				}
 		     }
 		    return caseData;

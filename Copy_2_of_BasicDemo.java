@@ -65,7 +65,7 @@ import static com.bulletphysics.demos.opengl.IGL.*;
 
 /**
  */
-public class BasicDemo extends DemoApplication {
+public class Copy_2_of_BasicDemo extends DemoApplication {
 	private static final String NUM_TEXTURES = null;
 	private ObjectArrayList<CollisionShape> collisionShapes = new ObjectArrayList<CollisionShape>();
 	private BroadphaseInterface broadphase;
@@ -101,12 +101,12 @@ public class BasicDemo extends DemoApplication {
      
  	private static int totalDataNum=11989;
  	//result(caseCount,3,caseNum) in matlab
- 	public static ArrayList<float[][]> trackingData=new ArrayList<float[][]>();
-	private String caseDataPath="D:\\Yixin\\model\\Case_";
+ 	private ArrayList<float[][]> trackingData=new ArrayList<float[][]>();
+	private String caseDataPath="D:\\Yixin\\model\\Case_Data_Model_2.txt";
 	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
-	private static int[] caseCount=new int[27];
+	private int[] caseCount=new int[27];
  	
-	public BasicDemo(IGL gl) {super(gl);}  
+	public Copy_2_of_BasicDemo(IGL gl) {super(gl);}  
 	public static ObjectArrayList<RigidBody> getTermites(){	return termites;}	
 	public static ArrayList<ArrayList<Vector3f>> getPositionList(){return positionList;}	
 	public static ArrayList<ArrayList<Quat4f>> getOrientationList(){return orientationList; }	
@@ -117,8 +117,6 @@ public class BasicDemo extends DemoApplication {
 	public static float getDishRadius(){return dishRadius;}
 	public static int getTermiteCount(){return numOfTermites;}
 	public static int[] getStates(){return states;}
-	public static ArrayList<float[][]>  getData(){return trackingData;}
-	public static int[] getCaseCount() {return caseCount;}
 	
 	
 	@Override
@@ -318,11 +316,13 @@ public class BasicDemo extends DemoApplication {
 		
 		
 		this.caseCount=readCaseCount(caseCountPath);
-		for (int i=1;i<=27;i++){
-			float[][] data=readDistributionData(caseDataPath, i);
-			this.trackingData.add(data);
+		int highest = caseCount[0]; // note: don't do this if the array could be empty
+		for(int i = 1; i < caseCount.length; i++) {
+		    if(highest<caseCount[i]) highest = caseCount[i];
 		}
-		
+		this.totalDataNum=highest;
+		readDistributionData(caseDataPath, totalDataNum);
+		//this.trackingData= 
 	}
 	
 	/**
@@ -339,28 +339,50 @@ public class BasicDemo extends DemoApplication {
 	 * @throws IOException 
 	    * 
 	    */
-	public static float[][] readDistributionData(String filePath,int i) throws IOException {
-		int c=caseCount[i-1];
-			float[][] result= new float[c][3];
-			filePath+=i;
-			filePath+=".txt";
+	public static float[][][] readDistributionData(String filePath,int totalDataNum) throws IOException {
+			float[][][] result= new float[totalDataNum][3][27];
 			byte[] buffer = new byte[(int) new File(filePath).length()];
 			    BufferedInputStream f = null;
 			    try {f = new BufferedInputStream(new FileInputStream(filePath));
 			        f.read(buffer);
 			        if (f != null) try { f.close(); } catch (IOException ignored) { }} 
 		        catch (IOException ignored) { System.out.println("File not found or invalid path.");}			    
-			
-			   String[] lines=new String(buffer).split("\\s+");
-			   for  (int  count=0;count<c*3;count++){	             
+			   
+			   // Open the file
+			    FileInputStream fstream = new FileInputStream(filePath);
+
+			    // Get the object of DataInputStream
+			    DataInputStream in = new DataInputStream(fstream);
+			    BufferedReader br = new BufferedReader(new InputStreamReader(in));
+			    String strLine;
+			    String result2="";
+			    //Read File Line By Line
+			    while ((strLine = br.readLine()) != null)   {
+			      // Print the content on the console
+			      //System.out.println (strLine);
+			    	result2+=strLine;
+			    }
+			    //Close the input stream
+			    in.close();
+			    
+			    //String[] lines=new String(buffer).split("\\s+");
+			   String[] lines=result2.split("\\s+");
+			   System.out.println(lines.length);
+			   for  (int  count=0;count<=lines.length;count++){
+			             
 			    		  BigDecimal number = new BigDecimal(lines[count]);
 				    	  String numWithNoExponents = number.toPlainString();
 				    	  float num=Float.valueOf(numWithNoExponents);
-				    	  int mod=count/c;
-				    	  int div=count%c;		
-				    	 //System.out.println("mod: " +mod + "; div: "+div);
-				          result[div][mod]= num;			         
-				          //System.out.println("result["+div +"]["+mod+"]="+result[div][mod]);				   
+				    	  int onePlane=totalDataNum*3;
+				    	   int z=(int) Math.floor(count/onePlane);
+				    	   int nowInOnePlane=count%onePlane;
+				    	  int mod=nowInOnePlane%totalDataNum;
+				    	  int div=(int)Math.floor(nowInOnePlane/totalDataNum);
+				    	  
+				          result[mod][div][z]= num;
+				          if(mod==11988 && div==2 && z==26){break;}
+				          //System.out.println("result["+mod +"]["+div+"]["+z+"]="+result[mod][div][z]);
+				   
 			   }
 			return result;
 		}
@@ -384,13 +406,12 @@ public class BasicDemo extends DemoApplication {
 	
 	
 	public static void main(String[] args) throws LWJGLException, IOException {
-		BasicDemo ccdDemo = new BasicDemo(LWJGL.getGL());
+		Copy_2_of_BasicDemo ccdDemo = new Copy_2_of_BasicDemo(LWJGL.getGL());
 		ccdDemo.initPhysics();
 		ccdDemo.getDynamicsWorld().setDebugDrawer(new GLDebugDrawer(LWJGL.getGL()));
 		LWJGL.main(args, 800, 600, "Termite", ccdDemo);
 		ccdDemo.toTxtFile();
 	}
-
 
 
 
