@@ -90,7 +90,7 @@ public class BasicDemo extends DemoApplication {
 	
 
 	private static ObjectArrayList<RigidBody> termites= new ObjectArrayList<RigidBody>();
-	private static int numOfTermites=22;
+	private static int numOfTermites=1;
 	private static int[] states=new int[numOfTermites];
 	private static float termiteRadius=6;
     private static float termiteLen=26;
@@ -105,6 +105,8 @@ public class BasicDemo extends DemoApplication {
 	private String caseDataPath="D:\\Yixin\\model\\Case_";
 	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
 	private static int[] caseCount=new int[27];
+	private static ArrayList<Vector3f> force=new ArrayList<Vector3f>();
+	private static int counter=0;
  	
 	public BasicDemo(IGL gl) {super(gl);}  
 	public static ObjectArrayList<RigidBody> getTermites(){	return termites;}	
@@ -119,7 +121,11 @@ public class BasicDemo extends DemoApplication {
 	public static int[] getStates(){return states;}
 	public static ArrayList<float[][]>  getData(){return trackingData;}
 	public static int[] getCaseCount() {return caseCount;}
-	
+	public static int getCounter() {return counter;}
+	public static  ArrayList<Vector3f>  getForce() {return force;}
+	public static void setForce(Vector3f newforce, int termite) {
+		force.set(termite,newforce);
+		}
 	
 	@Override
 	public void clientMoveAndDisplay() {
@@ -129,12 +135,15 @@ public class BasicDemo extends DemoApplication {
 		if (dynamicsWorld != null) {
 			//TODO: set the time to be correct
 			dynamicsWorld.stepSimulation((float)time,1); //step the world once 1/5 sec.
-            InternalTickCallback cb=new Model2(dynamicsWorld, gl);//MyInternalTickCallback ();
+		
+            InternalTickCallback cb=new Model0(dynamicsWorld, gl);//MyInternalTickCallback ();
 			Object worldUserInfo=0;
+			
 			dynamicsWorld.setInternalTickCallback(cb, worldUserInfo);
 			dynamicsWorld.debugDrawWorld();
 		}
 		time+=0.2;//getDeltaTimeMicroseconds()/1000000;
+		counter++;
 		renderme();
 		/*
 		if (time>=100){
@@ -226,9 +235,7 @@ public class BasicDemo extends DemoApplication {
 		dish = new RigidBody(rbInfo2);
 		//dish.setFriction(0);
 		dynamicsWorld.addRigidBody(dish);
-	//	model = glLoader.loadModel();
-	//	model.flattenLight();
-	//	model.reparentTo(dish);
+
 		
 		
 		
@@ -305,7 +312,6 @@ public class BasicDemo extends DemoApplication {
 			states[i1]=0;
 			termites.add(body3);
 			dynamicsWorld.addRigidBody(body3);
-		
 			
 			// Add initial orientation to the orientationList
 			Quat4f ori=new Quat4f();
@@ -314,15 +320,17 @@ public class BasicDemo extends DemoApplication {
 			individualOriList.add(ori);
 			orientationList.add(individualOriList);
 		}
-		clientResetScene();
-		
 		
 		this.caseCount=readCaseCount(caseCountPath);
-		for (int i=1;i<=27;i++){
+		for (int i=0;i<=26;i++){
 			float[][] data=readDistributionData(caseDataPath, i);
 			this.trackingData.add(data);
+			force.add(new Vector3f(0,0,0));
 		}
 		
+		
+		clientResetScene();
+	
 	}
 	
 	/**
@@ -334,15 +342,15 @@ public class BasicDemo extends DemoApplication {
 	}
 	
 	   /**
-	    * TODO: check the input data
 	 * @return 
 	 * @throws IOException 
 	    * 
 	    */
 	public static float[][] readDistributionData(String filePath,int i) throws IOException {
-		int c=caseCount[i-1];
+		int c=caseCount[i];
 			float[][] result= new float[c][3];
-			filePath+=i;
+			int j=1+i;
+			filePath+=j;
 			filePath+=".txt";
 			byte[] buffer = new byte[(int) new File(filePath).length()];
 			    BufferedInputStream f = null;
@@ -358,7 +366,7 @@ public class BasicDemo extends DemoApplication {
 				    	  float num=Float.valueOf(numWithNoExponents);
 				    	  int mod=count/c;
 				    	  int div=count%c;		
-				    	 //System.out.println("mod: " +mod + "; div: "+div);
+				    	 //System.out.println("mod: " +mod + "; div: "+div); 
 				          result[div][mod]= num;			         
 				          //System.out.println("result["+div +"]["+mod+"]="+result[div][mod]);				   
 			   }

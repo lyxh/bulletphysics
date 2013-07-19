@@ -31,7 +31,7 @@ import com.bulletphysics.BasicDemo;
 /**
  * The model that use the transition probability from the txt file.
  * At each step, three parameters are independently determined:x,y,angle.
- * Seems to be wrong....
+ * Average
  * @author ssr
  *
  */
@@ -41,8 +41,6 @@ public class Model3 extends InternalTickCallback{
 	private static int[] values=new int[4];
 	private static double angleRange=Math.PI/2;
 	private static float dishRadius=BasicDemo.getDishRadius();
-	private static float small_dis=10;
-	private static float large_dis=50;
 	private static String filePath="D:\\Yixin\\model\\Case_Avg_Data_Model_2.txt";
 	private float[][] distribution= new float[3][27];
 	public static int[] inputDistribution= new int[27];
@@ -50,6 +48,7 @@ public class Model3 extends InternalTickCallback{
 	private DynamicsWorld dynamicsWorld;
 	private IGL gl;
 	private static int continuing=5;
+	private boolean sameForcesOverSeveralFrames=true;
 	
 	public static int[] getInputDis(){return inputDistribution;}
 	
@@ -129,19 +128,6 @@ public class Model3 extends InternalTickCallback{
 				}
 				
 			}
-			
-			//Get the input case number
-			int caseNum=values[0]+values[1]*3+values[3]*3*3;
-			//System.out.println("Case "+caseNum);
-			Vector3f localforce=new Vector3f(distribution[0][caseNum]*2,distribution[1][caseNum]*4,0);
-			
-			//System.out.println(localforce);
-			float rotatedAngle=-distribution[2][caseNum]*50;
-			Transform tr=new Transform();
-			tr=body.getCenterOfMassTransform(tr);
-		    tr.basis.rotZ(rotatedAngle);	    
-		    body.setCenterOfMassTransform(tr);
-		    
 			//draw the termites direction
 			Vector3f from=new Vector3f(head_x,head_y,position.z);
 			float front_to_x=(float) (head_x+range*Math.cos(angle));
@@ -160,26 +146,48 @@ public class Model3 extends InternalTickCallback{
 			drawLine(from,front_to,color);
 			drawLine(from,left_to,color);
 			drawLine(from,right_to,color);
-			localforce=rotate(rotatedAngle, localforce);
-			Vector3f globalForce=rotate(angle,localforce);
-			drawLine(position,new Vector3f(position.x+globalForce.x*3,position.y+globalForce.y*3,position.z ),new Vector3f(1,1,0));
+			
+			
+			//Get the input case number
+			int caseNum=values[0]+values[1]*3+values[3]*3*3;
+			//System.out.println("Case "+caseNum);
+			
+			
+			Vector3f localforce=new Vector3f(distribution[0][caseNum]*2,distribution[1][caseNum]*2,5);
+		    //System.out.println(BasicDemo.getCounter());
+			if (sameForcesOverSeveralFrames){
+				if (BasicDemo.getCounter()% continuing ==1 ){			
+			      localforce=new Vector3f(distribution[0][caseNum]*2,distribution[1][caseNum]*2,5);
+			      BasicDemo.setForce(localforce,j);
+				}
+				else{
+					localforce=BasicDemo.getForce().get(j);
+				}
+			}
+            Vector3f globalForce=rotate(angle,localforce);
+			drawLine(position,new Vector3f(position.x+globalForce.x*4,position.y+globalForce.y*4,position.z ),new Vector3f(1,1,0));
 			
 			
 			globalForce.z=pullDownForce;
 			body.setLinearVelocity(globalForce);
+			
+			float rotatedAngle=(float) (distribution[2][caseNum]/Math.PI*180);
+			if (rotatedAngle>0){
+				System.out.println(rotatedAngle);
+			Transform tr=new Transform();
+			tr=body.getCenterOfMassTransform(tr);
+			Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);
+			Quat4f newAngle=new Quat4f();
+			newAngle=body.getOrientation(newAngle);
+			rotation.mul(newAngle);
+		    tr.setRotation(rotation);
+	        body.setCenterOfMassTransform(tr); 
+	        newAngle=body.getOrientation(newAngle);
+			}
 	    }
 	}
 	
-	
-	private float getAngleFromDistribution(int[] caseData) {
-		float angle = 0;
-		float angleCaseNum=caseData[0]+caseData[1]+caseData[2];
-		float random=(float) (Math.random());
-		if (random<caseData[0]/angleCaseNum){angle=0;}
-		if (random>=caseData[0]/angleCaseNum && random<(caseData[0]+caseData[0])/angleCaseNum){angle=(float) ((float) 1.57/Math.PI*-1);} //turn left
-		else{angle=(float) ((float) 1.57/Math.PI*180);} //turn right
-		return angle;
-	}
+
 
 	/**
 	 * The angle is in decimal, original  -->0; left:-pi, right:+pi
@@ -300,7 +308,6 @@ public class Model3 extends InternalTickCallback{
 			gl.glEnd();
 		}
 		
-		
 		 public Vector3f rotate(float angle,Vector3f v){
 		      Double originalAngle=Math.atan2(v.y,v.x);
 		      Double newAngle=angle+originalAngle;
@@ -309,4 +316,5 @@ public class Model3 extends InternalTickCallback{
 		      float y=(float) ((float)len*Math.sin(newAngle));
 		      return new Vector3f(x,y,v.z);
 		   }
+		 
 	}

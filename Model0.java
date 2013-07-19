@@ -31,7 +31,7 @@ import com.bulletphysics.BasicDemo;
  *
  */
 public class Model0 extends InternalTickCallback{	
-	private static int range=20;//how far away the termite could sense
+	private static int range=30;//how far away the termite could sense
 	private static float termiteHalfLen;
 	private static float termiteRadius;
 	private static int[] values=new int[4];
@@ -93,7 +93,7 @@ public class Model0 extends InternalTickCallback{
 				values[dir]=0;
 	             double point_x=head_x+range*Math.cos(angle-angleRange*dir);
 	             double point_y=head_y+range*Math.sin(angle-angleRange*dir);
-	             if ((point_x*point_x+point_y*point_y)>dishRadius*dishRadius){ values[dir]=1;}
+	             if ((point_x*point_x+point_y*point_y)>(dishRadius-5)*(dishRadius-5)){ values[dir]=1;}
 			}	 
 			
 			//2.check for other termites
@@ -123,31 +123,6 @@ public class Model0 extends InternalTickCallback{
 				}
 			}
 			
-			//Get the input case number
-			int caseNum=values[0]+values[1]*3+values[3]*3*3;
-			Vector3f localforce=new Vector3f(20,0,10);
-			int[] states=BasicDemo.getStates();
-		    if (values[0]==1){
-		    	float rotatedAngle=0;
-				//detects a wall, back up and turn randomly
-				Transform tr=new Transform();
-				tr=body.getCenterOfMassTransform(tr);
-				//positive angle: to the right, rotate to the right
-			    if (values[1]==0){ rotatedAngle=(float) ((float)-Math.PI/4);}//(Math.random()*Math.PI/2-Math.PI/4);
-			    if (values[3]==0){ rotatedAngle=(float) ((float)Math.PI/4);}
-			   // tr.basis.rotZ(rotatedAngle);
-			   // body.setCenterOfMassTransform(tr);
-			    //localforce=rotate(rotatedAngle,localforce);
-					//localforce=new Vector3f(-20,0,10);
-					localforce=rotate(rotatedAngle,localforce);
-				
-			}
-			
-			//Vector3f globalForce=getGlobalForce(localforce,body);
-			Vector3f globalForce=rotate(angle,localforce);
-			drawLine(position,new Vector3f(position.x+globalForce.x*2,position.y+globalForce.y*2,position.z ),new Vector3f(1,1,0));
-			
-			
 			//draw the termites direction
 			Vector3f from=new Vector3f(head_x,head_y,position.z);
 			float front_to_x=(float) (head_x+range*Math.cos(angle));
@@ -167,11 +142,40 @@ public class Model0 extends InternalTickCallback{
 			drawLine(from,left_to,color);
 			drawLine(from,right_to,color);
 			
+			//Get the input case number
+			int caseNum=values[0]+values[1]*3+values[3]*3*3;
+			Vector3f localforce=new Vector3f(20,0,10);
+			int[] states=BasicDemo.getStates();
+		    if (values[0]!=0){
+		    	int rotatedAngle=10;
+		    	//TODO: could not rotate to the left... Even changing the axis to negative does not work...
+				//positive angle: to the right, rotate to the right
+			    if (values[1]==0){ rotatedAngle=-90;}//if nothing on the left, turn left
+			    if (values[3]==0){ rotatedAngle=90;}//if nothing on the right, turn right
+		    	 localforce=new Vector3f(-5,0,10);
+				Transform tr=new Transform();
+				tr=body.getCenterOfMassTransform(tr);
+				Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);
+				Quat4f newAngle=new Quat4f();
+				newAngle=body.getOrientation(newAngle);
+				rotation.mul(newAngle);
+			    tr.setRotation(rotation);
+		        body.setCenterOfMassTransform(tr); 
+		        newAngle=body.getOrientation(newAngle);
+			  // Vector3f rotateForce=rotate(rotatedAngle,localforce);
+			  // Vector3f rotateGlobalForce=rotate(angle,rotateForce);
+			   //Vector3f negRotateGlocalForce=new Vector3f(-rotateGlobalForce.x,-rotateGlobalForce.y,rotateGlobalForce.z);
+			  /// body.applyForce(negRotateGlocalForce,rotateGlobalForce );
+			   //drawLine(new Vector3f(head_x,head_y,position.z),new Vector3f(head_x+rotateGlobalForce.x*2,head_y+rotateGlobalForce.y*2,position.z ),new Vector3f(1,0,0));
+			   //drawLine(new Vector3f(head_x,head_y,position.z),new Vector3f(head_x+rotateGlobalForce.x*2,head_y+rotateGlobalForce.y*2,position.z ),new Vector3f(1,0,0));
+			}
 			
+			//Vector3f globalForce=getGlobalForce(localforce,body);
+			Vector3f globalForce=rotate(angle,localforce);
+			drawLine(position,new Vector3f(position.x+globalForce.x*2,position.y+globalForce.y*2,position.z ),new Vector3f(1,1,0));
 			body.setLinearVelocity(globalForce);
-		}
-		
-      
+			
+           }
 		}
 	
 	

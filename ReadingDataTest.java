@@ -18,7 +18,5 @@ public class ReadingDataTest {
 		}
 		totalDataNum=highest;
 		trackingData=BasicDemo.readDistributionData(caseDataPath, 2);
-
-		
 	}
 }

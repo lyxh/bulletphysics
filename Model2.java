@@ -59,14 +59,6 @@ public class Model2 extends InternalTickCallback{
 	public Model2(DynamicsWorld dy, IGL gl) {
 		this.dynamicsWorld=dy;
 		this.gl=gl;
-		/*this.trackingData= readDistributionData(caseDataPath);
-		this.caseCount=readCaseCount(caseCountPath);
-		int highest = caseCount[0]; // note: don't do this if the array could be empty
-		for(int i = 1; i < caseCount.length; i++) {
-		    if(highest<caseCount[i]) highest = caseCount[i];
-		}
-		this.totalDataNum=highest;
-		*/
 		this.trackingData= BasicDemo.getData();
 		this.caseCount=BasicDemo.getCaseCount();}
 	
@@ -97,24 +89,7 @@ public class Model2 extends InternalTickCallback{
 			float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
 			float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
 			
-			//draw the termites direction
-			Vector3f from=new Vector3f(head_x,head_y,position.z);
-			float front_to_x=(float) (head_x+range*Math.cos(angle));
-			float front_to_y=(float) (head_y+range*Math.sin(angle));
-			Vector3f front_to=new Vector3f(front_to_x,front_to_y,position.z);
-			
-			float left_to_x=(float) (head_x+range*Math.cos(angle+Math.PI/2));
-			float left_to_y=(float) (head_y+range*Math.sin(angle+Math.PI/2));
-			Vector3f left_to=new Vector3f(left_to_x,left_to_y,position.z);
-			
-			float right_to_x=(float) (head_x+range*Math.cos(angle-Math.PI/2));
-			float right_to_y=(float) (head_y+range*Math.sin(angle-Math.PI/2));
-			Vector3f right_to=new Vector3f(right_to_x,right_to_y,position.z);
-			Vector3f color=new Vector3f(0,1,1);
-			//draw the line of the forward,left,right direction
-			drawLine(from,front_to,color);
-			drawLine(from,left_to,color);
-			drawLine(from,right_to,color);
+
 			
 			//1.check for wall.tested
 			for (int dir=0;dir<4;dir++){
@@ -153,27 +128,65 @@ public class Model2 extends InternalTickCallback{
 			
 			//Get the input case number
 			int caseNum=values[0]+values[1]*3+values[3]*3*3;
-			System.out.println(caseNum);
+			//System.out.println(caseNum);
 			inputDistribution[caseNum]+=1;
 			int caseCount=this.caseCount[caseNum];
 			
 			//1.set velocity
 			Vector3f localforce=getForceAngleFromDistribution(caseNum,caseCount);
-			float rotatedAngle=localforce.z;
-			Vector3f globalForce=getGlobalForce(localforce,body);
+			System.out.println(localforce);
+			float rotatedAngle=(float) (localforce.z/Math.PI*180);
+
+			
+
+				
+	        Vector3f globalForce=getGlobalForce(angle,localforce);
 			globalForce.z=pullDownForce;
 			body.setLinearVelocity(globalForce);
 			
 			//2.rotate the body
-			//System.out.println(rotatedAngle);
 			Transform tr=new Transform();
 			tr=body.getCenterOfMassTransform(tr);
-		    tr.basis.rotZ(rotatedAngle);
-		    body.setCenterOfMassTransform(tr);
+			Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);
+			Quat4f newAngle=new Quat4f();
+			newAngle=body.getOrientation(newAngle);
+			rotation.mul(newAngle);
+		    tr.setRotation(rotation);
+	        body.setCenterOfMassTransform(tr); 
+	        newAngle=body.getOrientation(newAngle);
+			
+			//draw the termites direction
+			Vector3f from=new Vector3f(head_x,head_y,position.z);
+			float front_to_x=(float) (head_x+range*Math.cos(angle));
+			float front_to_y=(float) (head_y+range*Math.sin(angle));
+			Vector3f front_to=new Vector3f(front_to_x,front_to_y,position.z);
+			
+			float left_to_x=(float) (head_x+range*Math.cos(angle+Math.PI/2));
+			float left_to_y=(float) (head_y+range*Math.sin(angle+Math.PI/2));
+			Vector3f left_to=new Vector3f(left_to_x,left_to_y,position.z);
+			
+			float right_to_x=(float) (head_x+range*Math.cos(angle-Math.PI/2));
+			float right_to_y=(float) (head_y+range*Math.sin(angle-Math.PI/2));
+			Vector3f right_to=new Vector3f(right_to_x,right_to_y,position.z);
+			Vector3f color=new Vector3f(0,1,1);
+			//draw the line of the forward,left,right direction
+			drawLine(from,front_to,color);
+			drawLine(from,left_to,color);
+			drawLine(from,right_to,color);
+			drawLine(position,new Vector3f(position.x+globalForce.x*2,position.y+globalForce.y*2,position.z ),new Vector3f(1,1,0));
+			
+		    
 		    }
 	}
 	
-	
+	private Vector3f getGlobalForce(float angle, Vector3f v){	      
+			Double originalAngle=Math.atan2(v.y,v.x);
+		    Double newAngle=angle+originalAngle;
+		    Float len= (float) Math.sqrt(v.x*v.x+v.y*v.y);
+		    float x= (float) ((float)len*Math.cos(newAngle));
+		    float y=(float) ((float)len*Math.sin(newAngle));
+		    return new Vector3f(x,y,v.z);
+    }
 	
 	/**
 	 * The angle is in decimal, original  -->0; left:-pi, right:+pi
@@ -193,14 +206,14 @@ public class Model2 extends InternalTickCallback{
 
 	/**
 	 * 
-	 * @param data
+	 * @param data randomly drawn from the sample pool, in form of (x,y,angle)
 	 * @return
 	 */
 	 private Vector3f getForceAngleFromDistribution(int caseNum,int caseCount) {
         float x=10;
 	    float y=0;
 	    float angle=0;
-		if (caseNum!=0){
+		if (caseCount!=0){
 		        int random=(int) (Math.random()*(float)caseCount);
 		        if(random>=caseCount & (int)caseCount!=0){random=caseCount-1;}
 		          x=this.trackingData.get(caseNum)[random][0];
