@@ -65,7 +65,7 @@ import static com.bulletphysics.demos.opengl.IGL.*;
 
 /**
  */
-public class Copy_2_of_BasicDemo extends DemoApplication {
+public class BuildingDemo extends DemoApplication {
 	private static final String NUM_TEXTURES = null;
 	private ObjectArrayList<CollisionShape> collisionShapes = new ObjectArrayList<CollisionShape>();
 	private BroadphaseInterface broadphase;
@@ -91,8 +91,8 @@ public class Copy_2_of_BasicDemo extends DemoApplication {
 
 	private static ObjectArrayList<RigidBody> termites= new ObjectArrayList<RigidBody>();
 	private static int numOfTermites=22;
-	private static int[] states=new int[numOfTermites];
-	private static float termiteRadius=6;
+
+	private static float termiteRadius=5;
     private static float termiteLen=26;
     private float termiteHeight=-6;
     private static ArrayList<ArrayList<Vector3f>> positionList= new ArrayList<ArrayList<Vector3f>>();
@@ -101,12 +101,19 @@ public class Copy_2_of_BasicDemo extends DemoApplication {
      
  	private static int totalDataNum=11989;
  	//result(caseCount,3,caseNum) in matlab
- 	private ArrayList<float[][]> trackingData=new ArrayList<float[][]>();
-	private String caseDataPath="D:\\Yixin\\model\\Case_Data_Model_2.txt";
+ 	public static ArrayList<float[][]> trackingData=new ArrayList<float[][]>();
+	private String caseDataPath="D:\\Yixin\\model\\Case_";
 	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
-	private int[] caseCount=new int[27];
+	private static int[] caseCount=new int[27];
+	private static ArrayList<Vector3f> force=new ArrayList<Vector3f>();
+	private static int counter=0;
  	
-	public Copy_2_of_BasicDemo(IGL gl) {super(gl);}  
+	//for each termite, store its' states
+	private static int[] states=new int[numOfTermites];
+	
+	
+	
+	public BuildingDemo(IGL gl) {super(gl);}  
 	public static ObjectArrayList<RigidBody> getTermites(){	return termites;}	
 	public static ArrayList<ArrayList<Vector3f>> getPositionList(){return positionList;}	
 	public static ArrayList<ArrayList<Quat4f>> getOrientationList(){return orientationList; }	
@@ -117,7 +124,12 @@ public class Copy_2_of_BasicDemo extends DemoApplication {
 	public static float getDishRadius(){return dishRadius;}
 	public static int getTermiteCount(){return numOfTermites;}
 	public static int[] getStates(){return states;}
-	
+	public static ArrayList<float[][]>  getData(){return trackingData;}
+	public static int[] getCaseCount() {return caseCount;}
+	public static int getCounter() {return counter;}
+	public static  ArrayList<Vector3f>  getForce() {return force;}
+	public static void setForce(Vector3f newforce, int termite) {force.set(termite,newforce);}
+	public static void setState(int termiteNumber, int newstate){states[termiteNumber]=newstate;}
 	
 	@Override
 	public void clientMoveAndDisplay() {
@@ -127,18 +139,25 @@ public class Copy_2_of_BasicDemo extends DemoApplication {
 		if (dynamicsWorld != null) {
 			//TODO: set the time to be correct
 			dynamicsWorld.stepSimulation((float)time,1); //step the world once 1/5 sec.
-            InternalTickCallback cb=new Model2(dynamicsWorld, gl);//MyInternalTickCallback ();
+		
+            InternalTickCallback cb=new Model3(dynamicsWorld, gl);//MyInternalTickCallback ();
 			Object worldUserInfo=0;
+			
 			dynamicsWorld.setInternalTickCallback(cb, worldUserInfo);
 			dynamicsWorld.debugDrawWorld();
 		}
 		time+=0.2;//getDeltaTimeMicroseconds()/1000000;
+		counter++;
 		renderme();
-		/*
-		if (time>=100){
-			for (int i=0;i<26;i++){ System.out.println("inpu["+i+1+"]="+Model1.getInputDis()[i]);}
+		
+		if (time>=1000){
+			for (int i=0;i<27;i++){ 
+				int j=i+1;
+				if( i==0){System.out.println("start");}
+				System.out.println(Model2.getInputDis()[i]+",");
+				}
 		}
-		*/
+		
 		//glFlush();
 		//glutSwapBuffers();
 	}
@@ -224,9 +243,7 @@ public class Copy_2_of_BasicDemo extends DemoApplication {
 		dish = new RigidBody(rbInfo2);
 		//dish.setFriction(0);
 		dynamicsWorld.addRigidBody(dish);
-	//	model = glLoader.loadModel();
-	//	model.flattenLight();
-	//	model.reparentTo(dish);
+
 		
 		
 		
@@ -303,7 +320,6 @@ public class Copy_2_of_BasicDemo extends DemoApplication {
 			states[i1]=0;
 			termites.add(body3);
 			dynamicsWorld.addRigidBody(body3);
-		
 			
 			// Add initial orientation to the orientationList
 			Quat4f ori=new Quat4f();
@@ -312,17 +328,18 @@ public class Copy_2_of_BasicDemo extends DemoApplication {
 			individualOriList.add(ori);
 			orientationList.add(individualOriList);
 		}
-		clientResetScene();
-		
 		
 		this.caseCount=readCaseCount(caseCountPath);
-		int highest = caseCount[0]; // note: don't do this if the array could be empty
-		for(int i = 1; i < caseCount.length; i++) {
-		    if(highest<caseCount[i]) highest = caseCount[i];
+		for (int i=0;i<=26;i++){
+			float[][] data=readDistributionData(caseDataPath, i);
+			this.trackingData.add(data);
+			force.add(new Vector3f(0,0,0));
+			states[0]=0;
 		}
-		this.totalDataNum=highest;
-		readDistributionData(caseDataPath, totalDataNum);
-		//this.trackingData= 
+		
+		
+		clientResetScene();
+	
 	}
 	
 	/**
@@ -334,55 +351,33 @@ public class Copy_2_of_BasicDemo extends DemoApplication {
 	}
 	
 	   /**
-	    * TODO: check the input data
 	 * @return 
 	 * @throws IOException 
 	    * 
 	    */
-	public static float[][][] readDistributionData(String filePath,int totalDataNum) throws IOException {
-			float[][][] result= new float[totalDataNum][3][27];
+	public static float[][] readDistributionData(String filePath,int i) throws IOException {
+		int c=caseCount[i];
+			float[][] result= new float[c][3];
+			int j=1+i;
+			filePath+=j;
+			filePath+=".txt";
 			byte[] buffer = new byte[(int) new File(filePath).length()];
 			    BufferedInputStream f = null;
 			    try {f = new BufferedInputStream(new FileInputStream(filePath));
 			        f.read(buffer);
 			        if (f != null) try { f.close(); } catch (IOException ignored) { }} 
 		        catch (IOException ignored) { System.out.println("File not found or invalid path.");}			    
-			   
-			   // Open the file
-			    FileInputStream fstream = new FileInputStream(filePath);
-
-			    // Get the object of DataInputStream
-			    DataInputStream in = new DataInputStream(fstream);
-			    BufferedReader br = new BufferedReader(new InputStreamReader(in));
-			    String strLine;
-			    String result2="";
-			    //Read File Line By Line
-			    while ((strLine = br.readLine()) != null)   {
-			      // Print the content on the console
-			      //System.out.println (strLine);
-			    	result2+=strLine;
-			    }
-			    //Close the input stream
-			    in.close();
-			    
-			    //String[] lines=new String(buffer).split("\\s+");
-			   String[] lines=result2.split("\\s+");
-			   System.out.println(lines.length);
-			   for  (int  count=0;count<=lines.length;count++){
-			             
+			
+			   String[] lines=new String(buffer).split("\\s+");
+			   for  (int  count=0;count<c*3;count++){	             
 			    		  BigDecimal number = new BigDecimal(lines[count]);
 				    	  String numWithNoExponents = number.toPlainString();
 				    	  float num=Float.valueOf(numWithNoExponents);
-				    	  int onePlane=totalDataNum*3;
-				    	   int z=(int) Math.floor(count/onePlane);
-				    	   int nowInOnePlane=count%onePlane;
-				    	  int mod=nowInOnePlane%totalDataNum;
-				    	  int div=(int)Math.floor(nowInOnePlane/totalDataNum);
-				    	  
-				          result[mod][div][z]= num;
-				          if(mod==11988 && div==2 && z==26){break;}
-				          //System.out.println("result["+mod +"]["+div+"]["+z+"]="+result[mod][div][z]);
-				   
+				    	  int mod=count/c;
+				    	  int div=count%c;		
+				    	 //System.out.println("mod: " +mod + "; div: "+div); 
+				          result[div][mod]= num;			         
+				          //System.out.println("result["+div +"]["+mod+"]="+result[div][mod]);				   
 			   }
 			return result;
 		}
@@ -406,12 +401,13 @@ public class Copy_2_of_BasicDemo extends DemoApplication {
 	
 	
 	public static void main(String[] args) throws LWJGLException, IOException {
-		Copy_2_of_BasicDemo ccdDemo = new Copy_2_of_BasicDemo(LWJGL.getGL());
+		BuildingDemo ccdDemo = new BuildingDemo(LWJGL.getGL());
 		ccdDemo.initPhysics();
 		ccdDemo.getDynamicsWorld().setDebugDrawer(new GLDebugDrawer(LWJGL.getGL()));
 		LWJGL.main(args, 800, 600, "Termite", ccdDemo);
 		ccdDemo.toTxtFile();
 	}
+
 
 
 
