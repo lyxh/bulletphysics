@@ -90,7 +90,7 @@ public class BasicDemo extends DemoApplication {
 	
 
 	private static ObjectArrayList<RigidBody> termites= new ObjectArrayList<RigidBody>();
-	private static int numOfTermites=1;
+	private static int numOfTermites=22;
 	private static int[] states=new int[numOfTermites];
 	private static float termiteRadius=6;
     private static float termiteLen=26;

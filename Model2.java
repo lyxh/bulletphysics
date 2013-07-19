@@ -49,18 +49,23 @@ public class Model2 extends InternalTickCallback{
 	public static int[] inputDistribution= new int[27];
 	private int pullDownForce=5;
 	public static int[] getInputDis(){return inputDistribution;}
-	private static boolean applySame=false;
-	private static int continuing=5;
+	
+
+	private static int continuing=2;
 	private String caseDataPath="D:\\Yixin\\model\\Case_Data_Model_2.txt";
 	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
 	private DynamicsWorld dynamicsWorld;
 	private IGL gl;
+	private static boolean sameForcesOverSeveralFrames=false;
+
+	
 	
 	public Model2(DynamicsWorld dy, IGL gl) {
 		this.dynamicsWorld=dy;
 		this.gl=gl;
 		this.trackingData= BasicDemo.getData();
-		this.caseCount=BasicDemo.getCaseCount();}
+		this.caseCount=BasicDemo.getCaseCount();
+	}
 	
 
 	public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {	
@@ -126,35 +131,6 @@ public class Model2 extends InternalTickCallback{
 				}
 			}
 			
-			//Get the input case number
-			int caseNum=values[0]+values[1]*3+values[3]*3*3;
-			//System.out.println(caseNum);
-			inputDistribution[caseNum]+=1;
-			int caseCount=this.caseCount[caseNum];
-			
-			//1.set velocity
-			Vector3f localforce=getForceAngleFromDistribution(caseNum,caseCount);
-			System.out.println(localforce);
-			float rotatedAngle=(float) (localforce.z/Math.PI*180);
-
-			
-
-				
-	        Vector3f globalForce=getGlobalForce(angle,localforce);
-			globalForce.z=pullDownForce;
-			body.setLinearVelocity(globalForce);
-			
-			//2.rotate the body
-			Transform tr=new Transform();
-			tr=body.getCenterOfMassTransform(tr);
-			Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);
-			Quat4f newAngle=new Quat4f();
-			newAngle=body.getOrientation(newAngle);
-			rotation.mul(newAngle);
-		    tr.setRotation(rotation);
-	        body.setCenterOfMassTransform(tr); 
-	        newAngle=body.getOrientation(newAngle);
-			
 			//draw the termites direction
 			Vector3f from=new Vector3f(head_x,head_y,position.z);
 			float front_to_x=(float) (head_x+range*Math.cos(angle));
@@ -173,9 +149,51 @@ public class Model2 extends InternalTickCallback{
 			drawLine(from,front_to,color);
 			drawLine(from,left_to,color);
 			drawLine(from,right_to,color);
-			drawLine(position,new Vector3f(position.x+globalForce.x*2,position.y+globalForce.y*2,position.z ),new Vector3f(1,1,0));
 			
-		    
+			
+			//Get the input case number
+			int caseNum=values[0]+values[1]*3+values[3]*3*3;
+			//System.out.println(caseNum);
+			inputDistribution[caseNum]+=1;
+			int caseCount=this.caseCount[caseNum];
+			
+			Vector3f localforce=getForceAngleFromDistribution(caseNum,caseCount);
+		    float rotatedAngle=(float)localforce.z;
+			localforce.z=0;
+			
+			if (sameForcesOverSeveralFrames){
+				if (BasicDemo.getCounter()% continuing ==1 ){			
+			      localforce=getForceAngleFromDistribution(caseNum,caseCount);
+			      rotatedAngle=localforce.z;
+			      BasicDemo.setForce(localforce,j);
+				}
+				else{
+					localforce=BasicDemo.getForce().get(j);
+					rotatedAngle=(float) (localforce.z);
+				}
+			}
+			
+			rotatedAngle=(float) (rotatedAngle/Math.PI*180);
+			System.out.println(localforce);
+			
+            System.out.println(rotatedAngle);
+            if (rotatedAngle>10){
+	            	Transform tr=new Transform();
+				tr=body.getCenterOfMassTransform(tr);
+				Quat4f rotation=new Quat4f();
+				if (rotatedAngle>=0){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}
+				if (rotatedAngle>=0){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);rotation.inverse();}
+				Quat4f newAngle=new Quat4f();
+				newAngle=body.getOrientation(newAngle);
+				rotation.mul(newAngle);
+			    tr.setRotation(rotation);
+		        body.setCenterOfMassTransform(tr); 
+		        newAngle=body.getOrientation(newAngle);
+            }
+			Vector3f globalForce=rotate(angle,localforce);
+			globalForce.z=pullDownForce;
+			body.setLinearVelocity(globalForce);
+			drawLine(position,new Vector3f(position.x+globalForce.x*2,position.y+globalForce.y*2,position.z ),new Vector3f(1,1,0));
 		    }
 	}
 	
@@ -292,16 +310,6 @@ public class Model2 extends InternalTickCallback{
 			return angleChange;
 	  }
 	  
-
-	   public static Vector3f getGlobalForce(Vector3f localforce, RigidBody body){
-		    Transform t=new Transform();
-			t=body.getMotionState().getWorldTransform(t);
-			Vector3f globalForce=new Vector3f(0,0,0);
-			globalForce.x=localforce.dot(new Vector3f(t.basis.m00, t.basis.m10, t.basis.m20));
-			globalForce.y=localforce.dot(new Vector3f(t.basis.m01, t.basis.m11, t.basis.m21));
-			globalForce.z=1;//localforce.dot(new Vector3f(t.basis.m02, t.basis.m12, t.basis.m22));
-	        return globalForce;
-	        }
 	   
 	   
 	   
@@ -324,4 +332,13 @@ public class Model2 extends InternalTickCallback{
 		     }
 		    return caseData;
 		    }
+		
+		 public Vector3f rotate(float angle,Vector3f v){
+		      Double originalAngle=Math.atan2(v.y,v.x);
+		      Double newAngle=angle+originalAngle;
+		      Float len= (float) Math.sqrt(v.x*v.x+v.y*v.y);
+		      float x= (float) ((float)len*Math.cos(newAngle));
+		      float y=(float) ((float)len*Math.sin(newAngle));
+		      return new Vector3f(x,y,v.z);
+		   }
 	}

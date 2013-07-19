@@ -145,17 +145,15 @@ public class Model0 extends InternalTickCallback{
 			//Get the input case number
 			int caseNum=values[0]+values[1]*3+values[3]*3*3;
 			Vector3f localforce=new Vector3f(20,0,10);
-			int[] states=BasicDemo.getStates();
-		    if (values[0]!=0){
-		    	int rotatedAngle=10;
-		    	//TODO: could not rotate to the left... Even changing the axis to negative does not work...
-				//positive angle: to the right, rotate to the right
-			    if (values[1]==0){ rotatedAngle=-90;}//if nothing on the left, turn left
-			    if (values[3]==0){ rotatedAngle=90;}//if nothing on the right, turn right
-		    	 localforce=new Vector3f(-5,0,10);
+			if (values[0]!=0){
+				if (values[3]==0 || values[1]==0){
+		    	Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, 4);
+		    	float rotatedAngle=45;
+		    	localforce=new Vector3f(-5,0,10);
 				Transform tr=new Transform();
 				tr=body.getCenterOfMassTransform(tr);
-				Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);
+				if (values[3]==0){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); }  //if nothing on the right, turn right:positive
+				if (values[1]==0){ rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}		 //if nothing on the left, turn left
 				Quat4f newAngle=new Quat4f();
 				newAngle=body.getOrientation(newAngle);
 				rotation.mul(newAngle);
@@ -168,6 +166,7 @@ public class Model0 extends InternalTickCallback{
 			  /// body.applyForce(negRotateGlocalForce,rotateGlobalForce );
 			   //drawLine(new Vector3f(head_x,head_y,position.z),new Vector3f(head_x+rotateGlobalForce.x*2,head_y+rotateGlobalForce.y*2,position.z ),new Vector3f(1,0,0));
 			   //drawLine(new Vector3f(head_x,head_y,position.z),new Vector3f(head_x+rotateGlobalForce.x*2,head_y+rotateGlobalForce.y*2,position.z ),new Vector3f(1,0,0));
+				}
 			}
 			
 			//Vector3f globalForce=getGlobalForce(localforce,body);
