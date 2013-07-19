@@ -92,7 +92,7 @@ public class BasicDemo extends DemoApplication {
 	private static ObjectArrayList<RigidBody> termites= new ObjectArrayList<RigidBody>();
 	private static int numOfTermites=22;
 	private static int[] states=new int[numOfTermites];
-	private static float termiteRadius=6;
+	private static float termiteRadius=5;
     private static float termiteLen=26;
     private float termiteHeight=-6;
     private static ArrayList<ArrayList<Vector3f>> positionList= new ArrayList<ArrayList<Vector3f>>();
@@ -136,7 +136,7 @@ public class BasicDemo extends DemoApplication {
 			//TODO: set the time to be correct
 			dynamicsWorld.stepSimulation((float)time,1); //step the world once 1/5 sec.
 		
-            InternalTickCallback cb=new Model0(dynamicsWorld, gl);//MyInternalTickCallback ();
+            InternalTickCallback cb=new Model2(dynamicsWorld, gl);//MyInternalTickCallback ();
 			Object worldUserInfo=0;
 			
 			dynamicsWorld.setInternalTickCallback(cb, worldUserInfo);
@@ -145,11 +145,15 @@ public class BasicDemo extends DemoApplication {
 		time+=0.2;//getDeltaTimeMicroseconds()/1000000;
 		counter++;
 		renderme();
-		/*
-		if (time>=100){
-			for (int i=0;i<26;i++){ System.out.println("inpu["+i+1+"]="+Model1.getInputDis()[i]);}
+		
+		if (time>=1000){
+			for (int i=0;i<27;i++){ 
+				int j=i+1;
+				if( i==0){System.out.println("start");}
+				System.out.println(Model2.getInputDis()[i]+",");
+				}
 		}
-		*/
+		
 		//glFlush();
 		//glutSwapBuffers();
 	}

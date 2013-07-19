@@ -51,13 +51,13 @@ public class Model2 extends InternalTickCallback{
 	public static int[] getInputDis(){return inputDistribution;}
 	
 
-	private static int continuing=2;
+	private static int continuing=3;
 	private String caseDataPath="D:\\Yixin\\model\\Case_Data_Model_2.txt";
 	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
 	private DynamicsWorld dynamicsWorld;
 	private IGL gl;
-	private static boolean sameForcesOverSeveralFrames=false;
-
+	private static boolean sameForcesOverSeveralFrames=true;
+   public static  int[] returnInputDis(){return inputDistribution;}
 	
 	
 	public Model2(DynamicsWorld dy, IGL gl) {
@@ -160,11 +160,12 @@ public class Model2 extends InternalTickCallback{
 			Vector3f localforce=getForceAngleFromDistribution(caseNum,caseCount);
 		    float rotatedAngle=(float)localforce.z;
 			localforce.z=0;
-			
+			boolean rotate=false;
 			if (sameForcesOverSeveralFrames){
 				if (BasicDemo.getCounter()% continuing ==1 ){			
 			      localforce=getForceAngleFromDistribution(caseNum,caseCount);
 			      rotatedAngle=localforce.z;
+			      rotate=true;
 			      BasicDemo.setForce(localforce,j);
 				}
 				else{
@@ -174,26 +175,36 @@ public class Model2 extends InternalTickCallback{
 			}
 			
 			rotatedAngle=(float) (rotatedAngle/Math.PI*180);
-			System.out.println(localforce);
+			//System.out.println(localforce);
 			
-            System.out.println(rotatedAngle);
-            if (rotatedAngle>10){
-	            	Transform tr=new Transform();
+            //System.out.println(rotatedAngle);
+            if (Math.abs(rotatedAngle)>3 && rotate==true){
+	            Transform tr=new Transform();
 				tr=body.getCenterOfMassTransform(tr);
-				Quat4f rotation=new Quat4f();
-				if (rotatedAngle>=0){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}
-				if (rotatedAngle>=0){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);rotation.inverse();}
 				Quat4f newAngle=new Quat4f();
 				newAngle=body.getOrientation(newAngle);
-				rotation.mul(newAngle);
-			    tr.setRotation(rotation);
-		        body.setCenterOfMassTransform(tr); 
-		        newAngle=body.getOrientation(newAngle);
+				if (rotatedAngle>0){ //turn left
+					Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);
+					rotation.inverse();
+					rotation.mul(newAngle);
+				    tr.setRotation(rotation);
+			        body.setCenterOfMassTransform(tr); 
+			        newAngle=body.getOrientation(newAngle);
+				}
+				if (rotatedAngle<=0){//turn right
+					Quat4f  rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, -rotatedAngle);
+					rotation.mul(newAngle);
+				    tr.setRotation(rotation);
+			        body.setCenterOfMassTransform(tr); 
+			        newAngle=body.getOrientation(newAngle);
+				}
+				
             }
+
 			Vector3f globalForce=rotate(angle,localforce);
 			globalForce.z=pullDownForce;
 			body.setLinearVelocity(globalForce);
-			drawLine(position,new Vector3f(position.x+globalForce.x*2,position.y+globalForce.y*2,position.z ),new Vector3f(1,1,0));
+			//drawLine(position,new Vector3f(position.x+globalForce.x,position.y+globalForce.y,position.z ),new Vector3f(1,1,0));
 		    }
 	}
 	

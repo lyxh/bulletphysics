@@ -44,6 +44,7 @@ public class Model0 extends InternalTickCallback{
 	private DynamicsWorld dynamicsWorld;
 	private IGL gl;
 	private static int continuing=1;
+	
 	public Model0(DynamicsWorld dy, IGL gl) {
 		this.dynamicsWorld=dy;
 		this.gl=gl;
@@ -144,6 +145,7 @@ public class Model0 extends InternalTickCallback{
 			
 			//Get the input case number
 			int caseNum=values[0]+values[1]*3+values[3]*3*3;
+			inputDistribution[caseNum]+=1;
 			Vector3f localforce=new Vector3f(20,0,10);
 			if (values[0]!=0){
 				if (values[3]==0 || values[1]==0){
