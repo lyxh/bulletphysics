@@ -82,7 +82,7 @@ public class Model1 extends InternalTickCallback{
 			if(time<count*200+diff && time>count*200-diff){
 		      	posList.get(j).add(head_x);	posList.get(j).add(head_y);	posList.get(j).add(tail_x);	posList.get(j).add(tail_y);
 		      	BasicDemo.incrementCount();
-		      	//System.out.println("Increment count to "+ count + " at time "+ time/1000);
+		      	System.out.println("Increment count to "+ count + " at time "+ time/1000);
 			}
 			//System.out.println("Head: "+head_x+" "+head_y);
 			//System.out.println("Tail: "+tail_x+" "+tail_y);
@@ -153,7 +153,7 @@ public class Model1 extends InternalTickCallback{
 			
 	    	boolean rotate=false;
 	    	double random=Math.random()*100;
-	    	double cut=70;
+	    	double cut=65;
 			//first, check for front
 			if (values[0]!=0 && random>cut){
 				if (values[3]==0 || values[1]==0){

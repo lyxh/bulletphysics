@@ -93,7 +93,7 @@ public class BasicDemo extends DemoApplication {
 	
 
 	private static ObjectArrayList<RigidBody> termites= new ObjectArrayList<RigidBody>();
-	private static int numOfTermites=1;
+	private static int numOfTermites=19;
 	private static int[] states=new int[numOfTermites];
 	private static float termiteRadius=5;
     private static float termiteLen=26;
@@ -161,8 +161,9 @@ public class BasicDemo extends DemoApplication {
 		
 		if (count==1000){
 			final long endTime = System.currentTimeMillis();
-              System.out.println("Total execution time: " + (endTime - start_time) );
-              System.out.println("Size of positionList.get(0)"+positionList.get(0).size() );
+			toTxtFile(positionList);
+              //System.out.println("Total execution time: " + (endTime - start_time) );
+            //  System.out.println("Size of positionList.get(0)"+positionList.get(0).size() );
               /*
 			for (int i=0;i<numOfTermites;i++){ 
 				int j=i+1;
@@ -376,7 +377,7 @@ public class BasicDemo extends DemoApplication {
 			}
 			FileOutputStream fop = null;
 			File file;
-			String filename = "Dish11Block1Termite"+(i+1)+".txt";
+			String filename = "D:\\Yixin\\model\\data\\Model1Block1Term"+(i+1)+".txt";
 	 
 			try {
 				file = new File(filename);
@@ -461,7 +462,7 @@ public class BasicDemo extends DemoApplication {
 		ccdDemo.initPhysics();
 		ccdDemo.getDynamicsWorld().setDebugDrawer(new GLDebugDrawer(LWJGL.getGL()));
 		LWJGL.main(args, 800, 600, "Termite", ccdDemo);
-		ccdDemo.toTxtFile(positionList);
+		
 	}
 
 
