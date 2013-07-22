@@ -29,7 +29,9 @@ import com.bulletphysics.util.ObjectArrayList;
 import com.bulletphysics.BasicDemo;
 
 /**
- * The model adds in the soil building activity. could specify the time in BasicDemo to make it work.
+ * The model that is similar to model 1. Only forward, side distance and angle rotated are taken into account
+ * But the distribution is drawn from the original data set.
+ * @author ssr
  *
  */
 public class Model3 extends InternalTickCallback{	
@@ -40,7 +42,7 @@ public class Model3 extends InternalTickCallback{
 	private static float dishRadius=BasicDemo.getDishRadius();
 	private static float small_dis=5;
 	private static float large_dis=20;
-
+    private static int digDepositDuration=100;
 
  	private ArrayList<float[][]> trackingData=new ArrayList<float[][]>();
 	private int[] caseCount=new int[27];
@@ -50,30 +52,27 @@ public class Model3 extends InternalTickCallback{
 	
 
 	private static int continuing=3;
-	private String caseDataPath="D:\\Yixin\\model\\Case_Data_Model_2.txt";
-	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
 	private DynamicsWorld dynamicsWorld;
 	private IGL gl;
 	private static boolean sameForcesOverSeveralFrames=true;
-	
-
-	
    public static  int[] returnInputDis(){return inputDistribution;}
 	
 	
 	public Model3(DynamicsWorld dy, IGL gl) {
 		this.dynamicsWorld=dy;
 		this.gl=gl;
-		this.trackingData= BasicDemo.getData();
-		this.caseCount=BasicDemo.getCaseCount();
+		this.trackingData= BuildingDemo.getData();
+		this.caseCount=BuildingDemo.getCaseCount();
 	}
 	
 
 	public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {	
-		ObjectArrayList<RigidBody> termites= BasicDemo.getTermites();
-		ArrayList<ArrayList<Vector3f>> posList=BasicDemo.getPositionList();
-		ArrayList<ArrayList<Quat4f>> oriList=BasicDemo.getOrientationList();
+		ObjectArrayList<RigidBody> termites= BuildingDemo.getTermites();
+		ArrayList<ArrayList<Vector3f>> posList=BuildingDemo.getPositionList();
+		ArrayList<ArrayList<Quat4f>> oriList=BuildingDemo.getOrientationList();
 		 for (int j=0; j<termites.size(); j++) {
+			int caseNum=getCaseNum(j);
+			
 	    	RigidBody body= termites.get(j);	
 			Vector3f position= new Vector3f(0,0,0);
 			//get the position and orientation of each termite                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
@@ -83,13 +82,12 @@ public class Model3 extends InternalTickCallback{
 			posList.get(j).add(position);
 			oriList.get(j).add(orientation);
 			
-			
 			//for each termite, classify the input condition
 			float center_x=position.x;
 			float center_y=position.y;
 			float angle=getAngle(orientation);
 			//position, angle correct 
-			float terLen=BasicDemo.getTermiteLen();
+			float terLen=BuildingDemo.getTermiteLen();
 			termiteHalfLen=(terLen/2);
 			float head_x=(float) (center_x+termiteHalfLen*Math.cos(angle));
 			float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
@@ -114,28 +112,31 @@ public class Model3 extends InternalTickCallback{
 			drawLine(from,front_to,color);
 			drawLine(from,left_to,color);
 			drawLine(from,right_to,color);
-			
-			
-			//Get the input case number
-			int caseNum=getCaseNum(j);
-			
+				
 			//System.out.println(caseNum);
 			inputDistribution[caseNum]+=1;
 			int caseCount=this.caseCount[caseNum];
 			
-			Vector3f localforce=getForceAngleFromDistribution(caseNum,caseCount);
+			int curState=BuildingDemo.getState(j);
+			Vector3f localforce=getForce(curState,caseNum,caseCount);
+			
+			//System.out.println("In state: "+curState+" for "+BuildingDemo.getTimeInState(j)[curState]);
+			int nextState=changeState(j,position, head_x,head_y);
+			BuildingDemo.setState(nextState, j);
+			//System.out.println("Next state is: "+nextState);
+			localforce=getForceAngleFromDistribution(caseNum,caseCount);
 		    float rotatedAngle=(float)localforce.z;
 			localforce.z=0;
 			boolean rotate=false;
 			if (sameForcesOverSeveralFrames){
-				if (BasicDemo.getCounter()% continuing ==1 ){			
+				if (BuildingDemo.getCounter()% continuing ==1 ){			
 			      localforce=getForceAngleFromDistribution(caseNum,caseCount);
 			      rotatedAngle=localforce.z;
 			      rotate=true;
-			      BasicDemo.setForce(localforce,j);
+			      BuildingDemo.setForce(localforce,j);
 				}
 				else{
-					localforce=BasicDemo.getForce().get(j);
+					localforce=BuildingDemo.getForce().get(j);
 					rotatedAngle=(float) (localforce.z);
 				}
 			}
@@ -174,70 +175,148 @@ public class Model3 extends InternalTickCallback{
 		    }
 	}
 	
-	private int getCaseNum(int j) {
-		ObjectArrayList<RigidBody> termites= BasicDemo.getTermites();
-		ArrayList<ArrayList<Vector3f>> posList=BasicDemo.getPositionList();
-		ArrayList<ArrayList<Quat4f>> oriList=BasicDemo.getOrientationList();
-		RigidBody body= termites.get(j);	
-		Vector3f position= new Vector3f(0,0,0);
-		//get the position and orientation of each termite                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
-		position=body.getCenterOfMassPosition(position);
-		Quat4f orientation=new Quat4f();
-		orientation=body.getOrientation(orientation);
-		posList.get(j).add(position);
-		oriList.get(j).add(orientation);
-		
-		
-		//for each termite, classify the input condition
-		float center_x=position.x;
-		float center_y=position.y;
-		float angle=getAngle(orientation);
-		//position, angle correct 
-		float terLen=BasicDemo.getTermiteLen();
-		termiteHalfLen=(terLen/2);
-		float head_x=(float) (center_x+termiteHalfLen*Math.cos(angle));
-		float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
-		float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
-		float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
-		
-   
-		
-		//1.check for wall.tested
-		for (int dir=0;dir<4;dir++){
-			values[dir]=0;
-             double point_x=head_x+range*Math.cos(angle-angleRange*dir);
-             double point_y=head_y+range*Math.sin(angle-angleRange*dir);
-             if ((point_x*point_x+point_y*point_y)>dishRadius*dishRadius){ values[dir]=1;}
-		}	 
-		
-		//2.check for other termites
-		for (int otherTer=0; otherTer<BasicDemo.getTermiteCount();otherTer++){
-			if (j!=otherTer){
-				//First, calculate the distance between two termites(center of the other termite- head position of this termite)
-				Vector3f other_position= new Vector3f(0,0,0);
-				RigidBody other_body=termites.get(otherTer);
-				other_position= other_body.getCenterOfMassPosition(other_position);
-				float other_x=other_position.x;
-				float other_y=other_position.y;
-				Quat4f other_orientation=new Quat4f();
-				other_orientation= other_body.getOrientation(other_orientation);
-				float other_angle=getAngle(other_orientation);
-				float other_head_x=(float) (other_position.x+termiteHalfLen*Math.cos(other_angle)); //cos, sin takes in radians!
-				float other_head_y=(float) (other_position.y+termiteHalfLen*Math.sin(other_angle));
-				float other_tail_x=(float) (other_position.x-termiteHalfLen*Math.cos(other_angle));
-				float other_tail_y=(float) (other_position.y-termiteHalfLen*Math.sin(other_angle));
-				//check if the termite is too close
-				if (Math.pow((other_x-head_x),2)+Math.pow((other_y-head_y),2)<range*range || Math.pow((other_head_x-head_x),2)+Math.pow((other_head_y-head_y),2)<range*range || Math.pow(other_tail_x-head_x,2)+Math.pow(other_tail_y-head_y,2)<range*range){
-					//if the termite is close, check in which quadrant it is.
-					float dis_angle=(float) Math.atan2(other_y-head_y,other_x-head_x);
-					float angleChange=getAngleChange(angle, dis_angle);
-					int direction=getDirectionFromAngle((double)angleChange);
-					values[direction]=2;				
-				}
+	private int changeState(int termite, Vector3f position, float head_x, float head_y) {
+		int currentState=BuildingDemo.getState(termite);
+		int nextState=currentState;
+		ObjectArrayList<RigidBody> termites= BuildingDemo.getTermites();
+		//if in state 0(moving), start dig by a random chance, 
+		if (currentState==0){
+			int inStateZero=BuildingDemo.getTimeInState(termite)[0];
+			if (inStateZero>digDepositDuration){
+				nextState=1;
+				//dig, change mesh height
+				Construction.dig(termites.get(termite), position,head_x,head_y,dynamicsWorld);
+				BuildingDemo.clearTimeInState(termite);
+				BuildingDemo.setTimeInState(termite,1,1);
+			}
+			else{
+				int dur=BuildingDemo.getTimeInState(termite)[0];
+				dur+=1;
+			    BuildingDemo.setTimeInState(termite,0,dur);
 			}
 		}
-		int caseNum=values[0]+values[1]*3+values[3]*3*3;
-		return caseNum;
+		//if in state 1(digging), start moving soil if have been dig for digDepositDuration
+		if (currentState==1){
+			int inStateOne=BuildingDemo.getTimeInState(termite)[1];
+			if (inStateOne>=digDepositDuration){
+				nextState=2;
+				//dig, change mesh height
+				BuildingDemo.clearTimeInState(termite);
+				BuildingDemo.setTimeInState(termite,2,1);
+			}
+			else{
+				int dur=BuildingDemo.getTimeInState(termite)[1];
+				dur+=1;
+				BuildingDemo.setTimeInState(termite,1,dur);
+			}
+		}
+		
+		//if in state 1(digging), start moving soil if have been dig for digDepositDuration or an existing depositing site is within sensing distance
+		if (currentState==2){
+			int inStateTwo=BuildingDemo.getTimeInState(termite)[2];
+			if (inStateTwo>digDepositDuration){
+				nextState=3;
+				//dig, change mesh height
+				Construction.deposit(termites.get(termite),  head_x,head_y,dynamicsWorld);
+				BuildingDemo.clearTimeInState(termite);
+				BuildingDemo.setTimeInState(termite,3,1);
+			}
+			else{int dur=BuildingDemo.getTimeInState(termite)[2];
+			dur+=1;
+			BuildingDemo.setTimeInState(termite,2,dur);}
+		}
+		
+		//if in state 3(depositing), start moving again if have been dig for digDepositDuration
+		if (currentState==3){
+			int inStateThree=BuildingDemo.getTimeInState(termite)[3];
+			if (inStateThree>=digDepositDuration){
+				nextState=0;
+				//deposit, change mesh height
+				BuildingDemo.clearTimeInState(termite);
+				BuildingDemo.setTimeInState(termite,0,1);
+			}
+			else{
+				int dur=BuildingDemo.getTimeInState(termite)[3];
+				dur+=1;
+				BuildingDemo.setTimeInState(termite,3,dur);
+			}
+		}
+		//System.out.println("Next state: "+ nextState);
+		return nextState;
+	}
+
+
+	private Vector3f getForce(int state, int caseNum, int caseCount) {
+		Vector3f localforce=getForceAngleFromDistribution(caseNum,caseCount);
+		if (state==1 || state==3){localforce=new Vector3f(0,0,0);}
+		return localforce;
+	}
+
+
+	private int getCaseNum(int j) {
+		ObjectArrayList<RigidBody> termites= BuildingDemo.getTermites();
+		ArrayList<ArrayList<Vector3f>> posList=BuildingDemo.getPositionList();
+		ArrayList<ArrayList<Quat4f>> oriList=BuildingDemo.getOrientationList();
+	
+	    	RigidBody body= termites.get(j);	
+			Vector3f position= new Vector3f(0,0,0);
+			//get the position and orientation of each termite                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+			position=body.getCenterOfMassPosition(position);
+			Quat4f orientation=new Quat4f();
+			orientation=body.getOrientation(orientation);
+			posList.get(j).add(position);
+			oriList.get(j).add(orientation);
+			
+			//for each termite, classify the input condition
+			float center_x=position.x;
+			float center_y=position.y;
+			float angle=getAngle(orientation);
+			//position, angle correct 
+			float terLen=BuildingDemo.getTermiteLen();
+			termiteHalfLen=(terLen/2);
+			float head_x=(float) (center_x+termiteHalfLen*Math.cos(angle));
+			float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
+			float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
+			float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
+			
+
+			
+			//1.check for wall.tested
+			for (int dir=0;dir<4;dir++){
+				values[dir]=0;
+	             double point_x=head_x+range*Math.cos(angle-angleRange*dir);
+	             double point_y=head_y+range*Math.sin(angle-angleRange*dir);
+	             if (Math.hypot(point_x,point_y)>dishRadius){ values[dir]=1;}
+			}	 
+			
+			//2.check for other termites
+			for (int otherTer=0; otherTer<BuildingDemo.getTermiteCount();otherTer++){
+				if (j!=otherTer){
+					//First, calculate the distance between two termites(center of the other termite- head position of this termite)
+					Vector3f other_position= new Vector3f(0,0,0);
+					RigidBody other_body=termites.get(otherTer);
+					other_position= other_body.getCenterOfMassPosition(other_position);
+					float other_x=other_position.x;
+					float other_y=other_position.y;
+					Quat4f other_orientation=new Quat4f();
+					other_orientation= other_body.getOrientation(other_orientation);
+					float other_angle=getAngle(other_orientation);
+					float other_head_x=(float) (other_position.x+termiteHalfLen*Math.cos(other_angle)); //cos, sin takes in radians!
+					float other_head_y=(float) (other_position.y+termiteHalfLen*Math.sin(other_angle));
+					float other_tail_x=(float) (other_position.x-termiteHalfLen*Math.cos(other_angle));
+					float other_tail_y=(float) (other_position.y-termiteHalfLen*Math.sin(other_angle));
+					//check if the termite is too close
+					if ( Math.hypot((other_x-head_x),(other_y-head_y))<range || Math.hypot((other_head_x-head_x),(other_head_y-head_y))<range || Math.hypot((other_tail_x-head_x),(other_tail_y-head_y))<range){
+						//if the termite is close, check in which quadrant it is.
+						float dis_angle=(float) Math.atan2(other_y-head_y,other_x-head_x);
+						float angleChange=getAngleChange(angle, dis_angle);
+						int direction=getDirectionFromAngle((double)angleChange);
+						values[direction]=2;				
+					}
+				}
+			}
+			int caseNum=values[0]+values[1]*3+values[3]*3*3;
+			return caseNum;
 	}
 
 

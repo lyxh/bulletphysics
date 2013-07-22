@@ -102,8 +102,10 @@ public class BasicDemo extends DemoApplication {
  	private static int totalDataNum=11989;
  	//result(caseCount,3,caseNum) in matlab
  	public static ArrayList<float[][]> trackingData=new ArrayList<float[][]>();
-	private String caseDataPath="D:\\Yixin\\model\\Case_";
-	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
+//	private String caseDataPath="//mit//liyixin//Desktop//SUMMER//model//Case_";
+//	private String caseCountPath="//mit//liyixin//Desktop//SUMMER//model//Case_Count_Model_2.txt";
+ 	private String caseDataPath="D:\\Yixin\\model\\Case_";
+ 	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
 	private static int[] caseCount=new int[27];
 	private static ArrayList<Vector3f> force=new ArrayList<Vector3f>();
 	private static int counter=0;

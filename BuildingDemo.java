@@ -23,10 +23,7 @@ import com.bulletphysics.util.ObjectArrayList;
 import com.bulletphysics.collision.broadphase.BroadphaseInterface;
 import com.bulletphysics.collision.broadphase.DbvtBroadphase;
 import com.bulletphysics.collision.dispatch.CollisionDispatcher;
-import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.dispatch.DefaultCollisionConfiguration;
-import com.bulletphysics.collision.narrowphase.ManifoldPoint;
-import com.bulletphysics.collision.narrowphase.PersistentManifold;
 import com.bulletphysics.collision.shapes.BoxShape;
 import com.bulletphysics.collision.shapes.BvhTriangleMeshShape;
 import com.bulletphysics.collision.shapes.CapsuleShape;
@@ -67,7 +64,7 @@ import static com.bulletphysics.demos.opengl.IGL.*;
  */
 public class BuildingDemo extends DemoApplication {
 	private static final String NUM_TEXTURES = null;
-	private ObjectArrayList<CollisionShape> collisionShapes = new ObjectArrayList<CollisionShape>();
+	private static  ObjectArrayList<CollisionShape> collisionShapes = new ObjectArrayList<CollisionShape>();
 	private BroadphaseInterface broadphase;
 	private CollisionDispatcher dispatcher;
 	private ConstraintSolver solver;
@@ -80,6 +77,7 @@ public class BuildingDemo extends DemoApplication {
 	private int dishHeight=30;
 	
 	private static BvhTriangleMeshShape soil;
+	private static TriangleIndexVertexArray  soilPoints;
 	private int soilHeight=0;
 	private static RigidBody soilBody;
 	private static ByteBuffer gVertices;
@@ -91,34 +89,37 @@ public class BuildingDemo extends DemoApplication {
 
 	private static ObjectArrayList<RigidBody> termites= new ObjectArrayList<RigidBody>();
 	private static int numOfTermites=22;
-
+	private static int[] states=new int[numOfTermites];
+	private static ArrayList<int[]> timeSpentInOneState= new ArrayList<int[]>();
 	private static float termiteRadius=5;
     private static float termiteLen=26;
     private float termiteHeight=-6;
     private static ArrayList<ArrayList<Vector3f>> positionList= new ArrayList<ArrayList<Vector3f>>();
     private static ArrayList<ArrayList<Quat4f>> orientationList= new ArrayList<ArrayList<Quat4f>>();
     private static float time=0; 
-     
+    
  	private static int totalDataNum=11989;
  	//result(caseCount,3,caseNum) in matlab
  	public static ArrayList<float[][]> trackingData=new ArrayList<float[][]>();
-	private String caseDataPath="D:\\Yixin\\model\\Case_";
-	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
-	private static int[] caseCount=new int[27];
+	//private String caseDataPath="//mit//liyixin//Desktop//SUMMER//model//Case_";
+	//private String caseCountPath="//mit//liyixin//Desktop//SUMMER//model//Case_Count_Model_2.txt";
+ 	private String caseDataPath="D:\\Yixin\\model\\Case_";
+ 	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
+ 	
+ 	private static int[] caseCount=new int[27];
 	private static ArrayList<Vector3f> force=new ArrayList<Vector3f>();
 	private static int counter=0;
  	
-	//for each termite, store its' states
-	private static int[] states=new int[numOfTermites];
-	
-	
-	
 	public BuildingDemo(IGL gl) {super(gl);}  
 	public static ObjectArrayList<RigidBody> getTermites(){	return termites;}	
 	public static ArrayList<ArrayList<Vector3f>> getPositionList(){return positionList;}	
 	public static ArrayList<ArrayList<Quat4f>> getOrientationList(){return orientationList; }	
 	public static BvhTriangleMeshShape getSoilMesh(){	return soil;}
+	public static void setSoilMesh(BvhTriangleMeshShape newSoil){	soil=newSoil;}
+	
 	public static RigidBody getSoil(){return soilBody;}
+	public static void setSoil( RigidBody newSoilBody){soilBody=newSoilBody;}
+	
 	public static float getTermiteLen(){return termiteLen;}
 	public static float getTermiteRad(){return termiteRadius;}
 	public static float getDishRadius(){return dishRadius;}
@@ -129,8 +130,17 @@ public class BuildingDemo extends DemoApplication {
 	public static int getCounter() {return counter;}
 	public static  ArrayList<Vector3f>  getForce() {return force;}
 	public static void setForce(Vector3f newforce, int termite) {force.set(termite,newforce);}
-	public static void setState(int termiteNumber, int newstate){states[termiteNumber]=newstate;}
+	public static int getState(int i){return states[i];}
+	public static void setState(int newstate, int i){states[i]=newstate;}
+	public static int[] getTimeInState(int termite){return timeSpentInOneState.get(termite);}
+	public static void setTimeInState(int termite, int stateNum, int newVal){timeSpentInOneState.get(termite)[stateNum]=newVal;}
+	public static void clearTimeInState(int termite){
+		for (int state=0; state<=3;state++){timeSpentInOneState.get(termite)[state]=0;}
+	}
+
+	static ObjectArrayList<CollisionShape> getColliShape(){return collisionShapes;}
 	
+	public static void setgVertices(ByteBuffer newVer){gVertices=newVer;}
 	@Override
 	public void clientMoveAndDisplay() {
 		gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -154,7 +164,7 @@ public class BuildingDemo extends DemoApplication {
 			for (int i=0;i<27;i++){ 
 				int j=i+1;
 				if( i==0){System.out.println("start");}
-				System.out.println(Model2.getInputDis()[i]+",");
+				System.out.println(Model3.getInputDis()[i]+",");
 				}
 		}
 		
@@ -233,7 +243,7 @@ public class BuildingDemo extends DemoApplication {
 		int indexStride = 3 * 4;
 		TriangleIndexVertexArray indexVertexArrays = new TriangleIndexVertexArray(numOfTriangles,gIndices2,indexStride, dishPoints, gVertices2, vertStride);
 		BvhTriangleMeshShape dishShape = new BvhTriangleMeshShape(indexVertexArrays, true);	
-		//collisionShapes.add(dishShape);		
+		//dishShape.setUserPointer(userPtr)//collisionShapes.add(dishShape);		
 		Transform triTransform = new Transform();
 		triTransform.setIdentity();
 		triTransform.origin.set(0, 0, 0);
@@ -259,6 +269,10 @@ public class BuildingDemo extends DemoApplication {
 				gVertices.putFloat(0);
 			}
 		}
+		
+		//for (int i=0;i<1000;i++){
+			//System.out.println("gVertices.getFloat"+i+" is "+gVertices.getFloat(i));
+		//}
 		gIndices.clear();
 		for (int i = 0; i < NUM_VERTS_X - 1; i++) {
 			for (int j1 = 0; j1 < NUM_VERTS_Y - 1; j1++) {
@@ -271,8 +285,8 @@ public class BuildingDemo extends DemoApplication {
 			}
 		}
 		gIndices.flip();
-		TriangleIndexVertexArray indexVertexArrays2 = new TriangleIndexVertexArray(totalTriangles,gIndices,indexStride,totalVerts, gVertices, vertStride);
-		BvhTriangleMeshShape soil = new BvhTriangleMeshShape(indexVertexArrays2, true);	
+		soilPoints= new TriangleIndexVertexArray(totalTriangles,gIndices,indexStride,totalVerts, gVertices, vertStride);
+		soil = new BvhTriangleMeshShape(soilPoints, true);	
 		collisionShapes.add(soil);
 		Transform triTransform2 = new Transform();
 		triTransform2.setIdentity();
@@ -280,6 +294,7 @@ public class BuildingDemo extends DemoApplication {
 		DefaultMotionState SoilMotionState = new DefaultMotionState(triTransform2);
 		RigidBodyConstructionInfo SoilrbInfo = new RigidBodyConstructionInfo(0f, SoilMotionState, soil, new Vector3f(0, 0, 0));
 		soilBody = new RigidBody(SoilrbInfo);
+
 		dynamicsWorld.addRigidBody(soilBody);		
 
 		
@@ -318,6 +333,7 @@ public class BuildingDemo extends DemoApplication {
 			//body3.setAngularFactor(new Vector3f(0,0, 0.0)); could not rotate around itself!
           // body3.setFriction(0);
 			states[i1]=0;
+
 			termites.add(body3);
 			dynamicsWorld.addRigidBody(body3);
 			
@@ -334,13 +350,31 @@ public class BuildingDemo extends DemoApplication {
 			float[][] data=readDistributionData(caseDataPath, i);
 			this.trackingData.add(data);
 			force.add(new Vector3f(0,0,0));
-			states[0]=0;
+			int[] s=new int[4];
+			for (int state=0;state<=3;state++){
+				s[state]=0;
+			}
+			timeSpentInOneState.add(s);
 		}
-		
+
 		
 		clientResetScene();
 	
 	}
+	
+	
+	
+	
+	public static float getHeight(BvhTriangleMeshShape mesh, int num_x,int num_y){
+		//first point: x(0),y(4), y(8), first point
+		//second point: x(12), y(16), z(20), seconf point
+		//third point:x (24), y(28) , z(32)
+		int point=num_x*NUM_VERTS_Y+num_y;
+		int position=point*12+8;
+		return gVertices.getFloat(position);
+	}
+	
+	
 	
 	/**
 	 * Output the center position and orientation of each termite to a txt file. (positionList and orientationList)
