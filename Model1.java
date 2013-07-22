@@ -38,6 +38,7 @@ public class Model1 extends InternalTickCallback{
 	public static int[] inputDistribution= new int[27];
 	private DynamicsWorld dynamicsWorld;
 	private IGL gl;
+	private float force;
 	private static int continuing=1;
 	
 	public Model1(DynamicsWorld dy, IGL gl) {
@@ -50,7 +51,46 @@ public class Model1 extends InternalTickCallback{
 	public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {	
 		ObjectArrayList<RigidBody> termites= BasicDemo.getTermites();
 		ArrayList<ArrayList<Float>> posList=BasicDemo.getPositionList();
-	//	readDistributionData();
+		
+		
+		//record the position every 1/5 sec
+		
+		int count=BasicDemo.getCount();
+		Long diff=(long)30;
+	
+		long time=BasicDemo.getTime();
+		//System.out.println("Time: "+time+"; Count:"+ count);
+		if(time<count*200+diff && time>count*200-diff){
+			BasicDemo.incrementCount();
+		  	System.out.println("Increment count to "+ count + " at time "+ time/1000);
+		  	//for every termite, record the position
+			 for (int j=0; j<termites.size(); j++) {
+			    	RigidBody body= termites.get(j);	
+					Vector3f position= new Vector3f(0,0,0);
+					//get the position and orientation of each termite                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+					position=body.getCenterOfMassPosition(position);
+					Quat4f orientation=new Quat4f();
+					orientation=body.getOrientation(orientation);
+					//for each termite, classify the input condition
+					float center_x=position.x;
+					float center_y=position.y;
+					float angle=getAngle(orientation);
+					//System.out.println(angle);
+					//position, angle correct 
+					float terLen=BasicDemo.getTermiteLen();
+					termiteHalfLen=(terLen/2);
+					termiteRadius=BasicDemo.getTermiteRad();
+					float head_x=(float) (center_x+termiteHalfLen*Math.cos(angle));
+					float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
+					float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
+					float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
+				  	posList.get(j).add(head_x);	posList.get(j).add(head_y);	posList.get(j).add(tail_x);	posList.get(j).add(tail_y);
+				  	
+			 }
+		}
+		
+	
+		force=(float) (6*(1-count/8000)*5);
 	    for (int j=0; j<termites.size(); j++) {
 	    	RigidBody body= termites.get(j);	
 			Vector3f position= new Vector3f(0,0,0);
@@ -74,16 +114,7 @@ public class Model1 extends InternalTickCallback{
 			float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
 			float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
 			
-			//record the position every 1/5 sec
-			long time=BasicDemo.getTime();
-			int count=BasicDemo.getCount();
-			Long diff=(long) 10;
-			//System.out.println("Time: "+time+"; Count:"+ count);
-			if(time<count*200+diff && time>count*200-diff){
-		      	posList.get(j).add(head_x);	posList.get(j).add(head_y);	posList.get(j).add(tail_x);	posList.get(j).add(tail_y);
-		      	BasicDemo.incrementCount();
-		      	System.out.println("Increment count to "+ count + " at time "+ time/1000);
-			}
+
 			//System.out.println("Head: "+head_x+" "+head_y);
 			//System.out.println("Tail: "+tail_x+" "+tail_y);
 			//1.check for wall.tested
@@ -143,7 +174,7 @@ public class Model1 extends InternalTickCallback{
 			//Get the input case number
 			int caseNum=values[0]+values[1]*3+values[3]*3*3;
 			inputDistribution[caseNum]+=1;
-			Vector3f localforce=new Vector3f(35,0,10);
+			Vector3f localforce=new Vector3f(force,0,10);
 		
 			
 	    	Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, 4);
@@ -153,7 +184,7 @@ public class Model1 extends InternalTickCallback{
 			
 	    	boolean rotate=false;
 	    	double random=Math.random()*100;
-	    	double cut=65;
+	    	double cut=60;
 			//first, check for front
 			if (values[0]!=0 && random>cut){
 				if (values[3]==0 || values[1]==0){

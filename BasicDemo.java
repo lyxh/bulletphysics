@@ -77,7 +77,7 @@ public class BasicDemo extends DemoApplication {
 	private DefaultCollisionConfiguration collisionConfiguration;
 	
 	private RigidBody dish;       
-	private static int dishRadius=200;
+	private static int dishRadius=220;
 	private int dishPoints=5000;
 	private int numOfTriangles=dishPoints;
 	private int dishHeight=30;
@@ -159,21 +159,15 @@ public class BasicDemo extends DemoApplication {
 		counter++;
 		renderme();
 		
-		if (count==1000){
-			final long endTime = System.currentTimeMillis();
-			toTxtFile(positionList);
-              //System.out.println("Total execution time: " + (endTime - start_time) );
-            //  System.out.println("Size of positionList.get(0)"+positionList.get(0).size() );
-              /*
-			for (int i=0;i<numOfTermites;i++){ 
-				int j=i+1;
-				if( i==0){System.out.println("start");}
-				     System.out.println(Model1.getInputDis()[i]+",");
-				}
-			*/
-              
-		}
-		
+		if(count==4000)	{
+            	toTxtFile(positionList,1);	toTxtFile(positionList,2);	toTxtFile(positionList,3);	toTxtFile(positionList,4);
+			    for (int i=0;i<numOfTermites;i++){ 
+					int j=i+1;
+					if( i==0){System.out.println("start");}
+					System.out.println(Model1.getInputDis()[i]+","); 	    
+			    }    
+			
+	   }
 		//glFlush();
 		//glutSwapBuffers();
 	}
@@ -352,10 +346,10 @@ public class BasicDemo extends DemoApplication {
 			positionList.add(posList);
 		}
 		
-		this.caseCount=readCaseCount(caseCountPath);
+	//	this.caseCount=readCaseCount(caseCountPath);
 		for (int i=0;i<numOfTermites;i++){
-			float[][] data=readDistributionData(caseDataPath, i);
-			this.trackingData.add(data);
+		//	float[][] data=readDistributionData(caseDataPath, i);
+		//	this.trackingData.add(data);
 			force.add(new Vector3f(0,0,0));
 		}
 		
@@ -368,16 +362,17 @@ public class BasicDemo extends DemoApplication {
 	 * Output the center position and orientation of each termite to a txt file. (positionList and orientationList)
 	 * The head and tail positions could be calculated from the position and orientation.
 	 */
-	public void toTxtFile(ArrayList<ArrayList<Float>> posList){
+	public void toTxtFile(ArrayList<ArrayList<Float>> posList, int block_num){
 		for(int i=0;i<posList.size();i++){
 			ArrayList<Float> dataForOneTermite=posList.get(i);
 			String content = "";
-			for(Float point:dataForOneTermite){
+			for(int j=(block_num-1)*1000;j<block_num*1000;j++){
+				Float point=dataForOneTermite.get(j);
 				content=content+point.toString()+ " ";
 			}
 			FileOutputStream fop = null;
 			File file;
-			String filename = "D:\\Yixin\\model\\data\\Model1Block1Term"+(i+1)+".txt";
+			String filename = "D:\\Yixin\\model\\data\\Model1Block"+block_num+"Term"+(i+1)+".txt";
 	 
 			try {
 				file = new File(filename);
@@ -390,8 +385,6 @@ public class BasicDemo extends DemoApplication {
 				fop.write(contentInBytes);
 				fop.flush();
 				fop.close();
-	 
-				System.out.println("Done");
 	 
 			} catch (IOException e) {
 				e.printStackTrace();
