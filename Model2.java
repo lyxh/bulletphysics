@@ -70,8 +70,6 @@ public class Model2 extends InternalTickCallback{
 
 	public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {	
 		ObjectArrayList<RigidBody> termites= BasicDemo.getTermites();
-		ArrayList<ArrayList<Vector3f>> posList=BasicDemo.getPositionList();
-		ArrayList<ArrayList<Quat4f>> oriList=BasicDemo.getOrientationList();
 		 for (int j=0; j<termites.size(); j++) {
 	    	RigidBody body= termites.get(j);	
 			Vector3f position= new Vector3f(0,0,0);
@@ -79,8 +77,8 @@ public class Model2 extends InternalTickCallback{
 			position=body.getCenterOfMassPosition(position);
 			Quat4f orientation=new Quat4f();
 			orientation=body.getOrientation(orientation);
-			posList.get(j).add(position);
-			oriList.get(j).add(orientation);
+			//posList.get(j).add(position);
+			//oriList.get(j).add(orientation);
 			
 			//for each termite, classify the input condition
 			float center_x=position.x;

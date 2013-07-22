@@ -16,6 +16,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Timer;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -67,6 +68,8 @@ import static com.bulletphysics.demos.opengl.IGL.*;
  */
 public class BasicDemo extends DemoApplication {
 	private static final String NUM_TEXTURES = null;
+	
+	private static Long start_time;
 	private ObjectArrayList<CollisionShape> collisionShapes = new ObjectArrayList<CollisionShape>();
 	private BroadphaseInterface broadphase;
 	private CollisionDispatcher dispatcher;
@@ -90,14 +93,14 @@ public class BasicDemo extends DemoApplication {
 	
 
 	private static ObjectArrayList<RigidBody> termites= new ObjectArrayList<RigidBody>();
-	private static int numOfTermites=22;
+	private static int numOfTermites=1;
 	private static int[] states=new int[numOfTermites];
 	private static float termiteRadius=5;
     private static float termiteLen=26;
     private float termiteHeight=-6;
-    private static ArrayList<ArrayList<Vector3f>> positionList= new ArrayList<ArrayList<Vector3f>>();
-    private static ArrayList<ArrayList<Quat4f>> orientationList= new ArrayList<ArrayList<Quat4f>>();
+    private static ArrayList<ArrayList<Float>> positionList= new ArrayList<ArrayList<Float>>();
     private static float time=0; 
+    private static int count=0;
      
  	private static int totalDataNum=11989;
  	//result(caseCount,3,caseNum) in matlab
@@ -112,8 +115,7 @@ public class BasicDemo extends DemoApplication {
  	
 	public BasicDemo(IGL gl) {super(gl);}  
 	public static ObjectArrayList<RigidBody> getTermites(){	return termites;}	
-	public static ArrayList<ArrayList<Vector3f>> getPositionList(){return positionList;}	
-	public static ArrayList<ArrayList<Quat4f>> getOrientationList(){return orientationList; }	
+	public static ArrayList<ArrayList<Float>> getPositionList(){return positionList;}	
 	public static BvhTriangleMeshShape getSoilMesh(){	return soil;}
 	public static RigidBody getSoil(){return soilBody;}
 	public static float getTermiteLen(){return termiteLen;}
@@ -127,7 +129,14 @@ public class BasicDemo extends DemoApplication {
 	public static  ArrayList<Vector3f>  getForce() {return force;}
 	public static void setForce(Vector3f newforce, int termite) {
 		force.set(termite,newforce);
-		}
+	}
+	public static int getCount(){return count;}
+	public static void incrementCount() {count++;}
+	public static long getTime(){
+		final long endTime = System.currentTimeMillis();
+		return(endTime - start_time) ;
+	}
+	
 	
 	@Override
 	public void clientMoveAndDisplay() {
@@ -136,24 +145,30 @@ public class BasicDemo extends DemoApplication {
 		// step the simulation
 		if (dynamicsWorld != null) {
 			//TODO: set the time to be correct
-			dynamicsWorld.stepSimulation((float)time,1); //step the world once 1/5 sec.
+			dynamicsWorld.stepSimulation((float)time); //step the world once 1/5 sec.
 		
-            InternalTickCallback cb=new Model2(dynamicsWorld, gl);//MyInternalTickCallback ();
+            InternalTickCallback cb=new Model1(dynamicsWorld, gl);//MyInternalTickCallback ();
 			Object worldUserInfo=0;
 			
 			dynamicsWorld.setInternalTickCallback(cb, worldUserInfo);
 			dynamicsWorld.debugDrawWorld();
 		}
-		time+=0.2;//getDeltaTimeMicroseconds()/1000000;
+		time+=1;//getDeltaTimeMicroseconds()/1000000;
 		counter++;
 		renderme();
 		
-		if (time>=1000){
-			for (int i=0;i<27;i++){ 
+		if (count==1000){
+			final long endTime = System.currentTimeMillis();
+              System.out.println("Total execution time: " + (endTime - start_time) );
+              System.out.println("Size of positionList.get(0)"+positionList.get(0).size() );
+              /*
+			for (int i=0;i<numOfTermites;i++){ 
 				int j=i+1;
 				if( i==0){System.out.println("start");}
-				System.out.println(Model2.getInputDis()[i]+",");
+				     System.out.println(Model1.getInputDis()[i]+",");
 				}
+			*/
+              
 		}
 		
 		//glFlush();
@@ -305,9 +320,7 @@ public class BasicDemo extends DemoApplication {
 			float randomAngle=(float) (Math.random()*2*Math.PI);
 			capTransform.basis.rotZ(randomAngle);
 			
-			ArrayList<Vector3f> individualList=new ArrayList<Vector3f>();
-			individualList.add(new Vector3f(x,y,termiteHeight));
-			positionList.add(individualList);
+
 	      
 			DefaultMotionState myMotionState3 = new DefaultMotionState(capTransform);
 			RigidBodyConstructionInfo rbInfo3 = new RigidBodyConstructionInfo(mass3, myMotionState3, terShape, localInertia3);
@@ -322,19 +335,28 @@ public class BasicDemo extends DemoApplication {
 			// Add initial orientation to the orientationList
 			Quat4f ori=new Quat4f();
 			ori=body3.getOrientation(ori);
-			ArrayList<Quat4f> individualOriList=new ArrayList<Quat4f>();
-			individualOriList.add(ori);
-			orientationList.add(individualOriList);
+			float angl=getAngle(ori);
+			float center_x=x;
+			float center_y=y;
+			float termiteHalfLen=(termiteLen/2);
+			float head_x=(float) (center_x+termiteHalfLen*Math.cos(angle));
+			float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
+			float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
+			float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
+			
+			ArrayList<Float> posList=new ArrayList<Float>();
+			posList.add(head_x);	posList.add(head_y);	posList.add(tail_x);	posList.add(tail_y);
+			positionList.add(posList);
 		}
 		
 		this.caseCount=readCaseCount(caseCountPath);
-		for (int i=0;i<=26;i++){
+		for (int i=0;i<numOfTermites;i++){
 			float[][] data=readDistributionData(caseDataPath, i);
 			this.trackingData.add(data);
 			force.add(new Vector3f(0,0,0));
 		}
 		
-		
+		start_time = System.currentTimeMillis();
 		clientResetScene();
 	
 	}
@@ -343,7 +365,7 @@ public class BasicDemo extends DemoApplication {
 	 * Output the center position and orientation of each termite to a txt file. (positionList and orientationList)
 	 * The head and tail positions could be calculated from the position and orientation.
 	 */
-	public void toTxtFile(){
+	public void toTxtFile(ArrayList<ArrayList<Float>> posList){
 		
 	}
 	
@@ -402,10 +424,26 @@ public class BasicDemo extends DemoApplication {
 		ccdDemo.initPhysics();
 		ccdDemo.getDynamicsWorld().setDebugDrawer(new GLDebugDrawer(LWJGL.getGL()));
 		LWJGL.main(args, 800, 600, "Termite", ccdDemo);
-		ccdDemo.toTxtFile();
+		ccdDemo.toTxtFile(positionList);
 	}
 
 
+	/**
+	  * 
+	  * @param orientation
+	  * @return
+	  */
+	  public static float getAngle(Quat4f orientation){
+		    float w=orientation.w;
+			float x=orientation.x;
+			float y=orientation.y;
+			float z=orientation.z;
+			Vector3f euler=new Vector3f(0,0,0);
+			euler.x=(float) Math.atan2(2.0 * (w*x + y*z),1-2*( y*y + x*x));
+			euler.y=(float) Math.atan2(2.0 * (w*z + x*y),1-2*( y*y + z*z));
+			euler.z=(float) Math.asin(2.0 * (w*y - x*z));
+		    return euler.y;		  //we want yaw
+	  }
 
 
 	

@@ -23,8 +23,7 @@ public class MyInternalTickCallback extends InternalTickCallback{
 	   
 	public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {		
 		ObjectArrayList<RigidBody> termites= BasicDemo.getTermites();
-		ArrayList<ArrayList<Vector3f>> posList=BasicDemo.getPositionList();
-		ArrayList<ArrayList<Quat4f>> oriList=BasicDemo.getOrientationList();
+
 	    //get the position and orientation of each termite
 		for (int j=0; j<termites.size();j++){	
 			Vector3f position= new Vector3f(0,0,0);
@@ -32,8 +31,6 @@ public class MyInternalTickCallback extends InternalTickCallback{
 			position=termites.get(j).getCenterOfMassPosition(position);
 			Quat4f orientation=new Quat4f();
 			orientation=termites.get(j).getOrientation(orientation);
-			posList.get(j).add(position);
-			oriList.get(j).add(orientation);
 			//System.out.println(orientation);
 		}
 		
