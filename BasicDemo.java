@@ -146,10 +146,10 @@ public class BasicDemo extends DemoApplication {
 		// step the simulation
 		if (dynamicsWorld != null) {
 			//TODO: set the time to be correct
-			if(counter==0){	start_time = System.currentTimeMillis();}
+			if(counter==0){	}
 			dynamicsWorld.stepSimulation((float)time); //step the world once 1/5 sec.
-		
-            InternalTickCallback cb=new Model1(dynamicsWorld, gl);//MyInternalTickCallback ();
+			start_time = System.currentTimeMillis();
+            InternalTickCallback cb=new Model2(dynamicsWorld, gl);//MyInternalTickCallback ();
 			Object worldUserInfo=0;
 			
 			dynamicsWorld.setInternalTickCallback(cb, worldUserInfo);

@@ -56,7 +56,7 @@ public class Model2 extends InternalTickCallback{
 	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
 	private DynamicsWorld dynamicsWorld;
 	private IGL gl;
-	private static boolean sameForcesOverSeveralFrames=true;
+	private static boolean sameForcesOverSeveralFrames=false;
    public static  int[] returnInputDis(){return inputDistribution;}
 	
 	
@@ -70,6 +70,45 @@ public class Model2 extends InternalTickCallback{
 
 	public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {	
 		ObjectArrayList<RigidBody> termites= BasicDemo.getTermites();
+		ArrayList<ArrayList<Float>> posList=BasicDemo.getPositionList();
+		
+		
+		//record the position every 1/5 sec
+		
+		int count=BasicDemo.getCount();
+		Long diff=(long)30;
+	
+		long time=BasicDemo.getTime();
+		//System.out.println("Time: "+time+"; Count:"+ count);
+		if(time<count*100+diff && time>count*100-diff){
+			BasicDemo.incrementCount();
+		  	System.out.println("Increment count to "+ count + " at time "+ time/1000);
+		  	//for every termite, record the position
+			 for (int j=0; j<termites.size(); j++) {
+			    	RigidBody body= termites.get(j);	
+					Vector3f position= new Vector3f(0,0,0);
+					//get the position and orientation of each termite                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+					position=body.getCenterOfMassPosition(position);
+					Quat4f orientation=new Quat4f();
+					orientation=body.getOrientation(orientation);
+					//for each termite, classify the input condition
+					float center_x=position.x;
+					float center_y=position.y;
+					float angle=getAngle(orientation);
+					//System.out.println(angle);
+					//position, angle correct 
+					float terLen=BasicDemo.getTermiteLen();
+					termiteHalfLen=(terLen/2);
+					float head_x=(float) (center_x+termiteHalfLen*Math.cos(angle));
+					float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
+					float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
+					float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
+				  	posList.get(j).add(head_x);	posList.get(j).add(head_y);	posList.get(j).add(tail_x);	posList.get(j).add(tail_y);
+				  	
+			 }
+		}
+		
+		
 		 for (int j=0; j<termites.size(); j++) {
 	    	RigidBody body= termites.get(j);	
 			Vector3f position= new Vector3f(0,0,0);
@@ -77,14 +116,11 @@ public class Model2 extends InternalTickCallback{
 			position=body.getCenterOfMassPosition(position);
 			Quat4f orientation=new Quat4f();
 			orientation=body.getOrientation(orientation);
-			//posList.get(j).add(position);
-			//oriList.get(j).add(orientation);
 			
 			//for each termite, classify the input condition
 			float center_x=position.x;
 			float center_y=position.y;
 			float angle=getAngle(orientation);
-			//position, angle correct 
 			float terLen=BasicDemo.getTermiteLen();
 			termiteHalfLen=(terLen/2);
 			float head_x=(float) (center_x+termiteHalfLen*Math.cos(angle));
@@ -249,7 +285,7 @@ public class Model2 extends InternalTickCallback{
 		          angle=this.trackingData.get(caseNum)[random][2];
 				
 		 }
-		 Vector3f force=new Vector3f(x,y,angle);
+		 Vector3f force=new Vector3f(x*5,y*5,angle);
 		return force;
 	}
 
