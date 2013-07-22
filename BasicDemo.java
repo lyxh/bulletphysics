@@ -100,7 +100,7 @@ public class BasicDemo extends DemoApplication {
     private float termiteHeight=-6;
     private static ArrayList<ArrayList<Float>> positionList= new ArrayList<ArrayList<Float>>();
     private static float time=0; 
-    private static int count=0;
+    private static int count=1;
      
  	private static int totalDataNum=11989;
  	//result(caseCount,3,caseNum) in matlab
@@ -111,7 +111,7 @@ public class BasicDemo extends DemoApplication {
  	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
 	private static int[] caseCount=new int[27];
 	private static ArrayList<Vector3f> force=new ArrayList<Vector3f>();
-	private static int counter=0;
+	public static int counter=0;
  	
 	public BasicDemo(IGL gl) {super(gl);}  
 	public static ObjectArrayList<RigidBody> getTermites(){	return termites;}	
@@ -125,18 +125,19 @@ public class BasicDemo extends DemoApplication {
 	public static int[] getStates(){return states;}
 	public static ArrayList<float[][]>  getData(){return trackingData;}
 	public static int[] getCaseCount() {return caseCount;}
-	public static int getCounter() {return counter;}
+
 	public static  ArrayList<Vector3f>  getForce() {return force;}
 	public static void setForce(Vector3f newforce, int termite) {
 		force.set(termite,newforce);
 	}
 	public static int getCount(){return count;}
+	
 	public static void incrementCount() {count++;}
 	public static long getTime(){
 		final long endTime = System.currentTimeMillis();
-		return(endTime - start_time) ;
+		final long diff=endTime-start_time;
+		return diff;
 	}
-	
 	
 	@Override
 	public void clientMoveAndDisplay() {
@@ -145,6 +146,7 @@ public class BasicDemo extends DemoApplication {
 		// step the simulation
 		if (dynamicsWorld != null) {
 			//TODO: set the time to be correct
+			if(counter==0){	start_time = System.currentTimeMillis();}
 			dynamicsWorld.stepSimulation((float)time); //step the world once 1/5 sec.
 		
             InternalTickCallback cb=new Model1(dynamicsWorld, gl);//MyInternalTickCallback ();
@@ -356,7 +358,7 @@ public class BasicDemo extends DemoApplication {
 			force.add(new Vector3f(0,0,0));
 		}
 		
-		start_time = System.currentTimeMillis();
+		
 		clientResetScene();
 	
 	}
@@ -366,7 +368,42 @@ public class BasicDemo extends DemoApplication {
 	 * The head and tail positions could be calculated from the position and orientation.
 	 */
 	public void toTxtFile(ArrayList<ArrayList<Float>> posList){
-		
+		for(int i=0;i<posList.size();i++){
+			ArrayList<Float> dataForOneTermite=posList.get(i);
+			String content = "";
+			for(Float point:dataForOneTermite){
+				content=content+point.toString()+ " ";
+			}
+			FileOutputStream fop = null;
+			File file;
+			String filename = "Dish11Block1Termite"+(i+1)+".txt";
+	 
+			try {
+				file = new File(filename);
+				fop = new FileOutputStream(file);
+	             if (!file.exists()) {file.createNewFile();}
+	 
+				// get the content in bytes
+				byte[] contentInBytes = content.getBytes();
+	 
+				fop.write(contentInBytes);
+				fop.flush();
+				fop.close();
+	 
+				System.out.println("Done");
+	 
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					if (fop != null) {
+						fop.close();
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 	
 	   /**
@@ -444,6 +481,10 @@ public class BasicDemo extends DemoApplication {
 			euler.z=(float) Math.asin(2.0 * (w*y - x*z));
 		    return euler.y;		  //we want yaw
 	  }
+	public static int getCounter() {
+		return counter;
+	}
+
 
 
 	

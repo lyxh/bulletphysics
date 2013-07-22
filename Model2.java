@@ -160,7 +160,8 @@ public class Model2 extends InternalTickCallback{
 			localforce.z=0;
 			boolean rotate=false;
 			if (sameForcesOverSeveralFrames){
-				if (BasicDemo.getCounter()% continuing ==1 ){			
+				int counter=BasicDemo.getCounter();
+				if (counter % continuing ==1 ){			
 			      localforce=getForceAngleFromDistribution(caseNum,caseCount);
 			      rotatedAngle=localforce.z;
 			      rotate=true;

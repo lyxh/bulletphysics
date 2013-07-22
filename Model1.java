@@ -77,10 +77,12 @@ public class Model1 extends InternalTickCallback{
 			//record the position every 1/5 sec
 			long time=BasicDemo.getTime();
 			int count=BasicDemo.getCount();
-			Long diff=(long) 20;
+			Long diff=(long) 10;
+			//System.out.println("Time: "+time+"; Count:"+ count);
 			if(time<count*200+diff && time>count*200-diff){
 		      	posList.get(j).add(head_x);	posList.get(j).add(head_y);	posList.get(j).add(tail_x);	posList.get(j).add(tail_y);
 		      	BasicDemo.incrementCount();
+		      	//System.out.println("Increment count to "+ count + " at time "+ time/1000);
 			}
 			//System.out.println("Head: "+head_x+" "+head_y);
 			//System.out.println("Tail: "+tail_x+" "+tail_y);
