@@ -106,13 +106,13 @@ public class BasicDemo2 extends DemoApplication {
  	public static ArrayList<float[][]> trackingData=new ArrayList<float[][]>();
 //	private String caseDataPath="//mit//liyixin//Desktop//SUMMER//model//Case_";
 //	private String caseCountPath="//mit//liyixin//Desktop//SUMMER//model//Case_Count_Model_2.txt";
-	private String caseDataPath="D:\\Yixin\\model\\Case_.txt";
+	private String caseDataPath="D:\\Yixin\\model\\Case_";
 	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
-	private String caseDataPath2="D:\\Yixin\\model\\SecondCase_.txt";
+	private String caseDataPath2="D:\\Yixin\\model\\SecondCase_";
 	private String caseCountPath2="D:\\Yixin\\model\\SecondCase_Count_Model_2.txt";
-	private String caseDataPath3="D:\\Yixin\\model\\ThirdCase_.txt";
+	private String caseDataPath3="D:\\Yixin\\model\\ThirdCase_";
 	private String caseCountPath3="D:\\Yixin\\model\\ThirdCase_Count_Model_2.txt";
-	private String caseDataPath4="D:\\Yixin\\model\\ForthCase_.txt";
+	private String caseDataPath4="D:\\Yixin\\model\\ForthCase_";
 	private String caseCountPath4="D:\\Yixin\\model\\ForthCase_Count_Model_2.txt";
 	private static int[] caseCount=new int[27];
 	private static ArrayList<Vector3f> force=new ArrayList<Vector3f>();
@@ -154,7 +154,7 @@ public class BasicDemo2 extends DemoApplication {
 			if(counter==0){start_time = System.currentTimeMillis();	}
 			dynamicsWorld.stepSimulation((float)time); //step the world once 1/5 sec.
 			
-            InternalTickCallback cb=new Model1(dynamicsWorld, gl);//MyInternalTickCallback ();
+            InternalTickCallback cb=new Model2(dynamicsWorld, gl);//MyInternalTickCallback ();
 			Object worldUserInfo=0;
 			
 			dynamicsWorld.setInternalTickCallback(cb, worldUserInfo);
@@ -216,7 +216,7 @@ public class BasicDemo2 extends DemoApplication {
 			    for (int i=0;i<27;i++){ 
 					int j=i+1;
 					if( i==0){System.out.println("start");}
-					System.out.println(Model1.getInputDis()[i]+","); 	    
+					System.out.println(Model2.getInputDis()[i]+","); 	    
 			    }    
 			
 	   }
@@ -452,7 +452,7 @@ public class BasicDemo2 extends DemoApplication {
 		}
 	}
 	
-	   /**
+	   /** Read the data of case i, i starts from 0
 	 * @return 
 	 * @throws IOException 
 	    * 
@@ -463,13 +463,14 @@ public class BasicDemo2 extends DemoApplication {
 			int j=1+i;
 			filePath+=j;
 			filePath+=".txt";
+			 // System.out.println(filePath);
 			byte[] buffer = new byte[(int) new File(filePath).length()];
 			    BufferedInputStream f = null;
 			    try {f = new BufferedInputStream(new FileInputStream(filePath));
 			        f.read(buffer);
 			        if (f != null) try { f.close(); } catch (IOException ignored) { }} 
 		        catch (IOException ignored) { System.out.println("File not found or invalid path.");}			    
-			
+			  
 			   String[] lines=new String(buffer).split("\\s+");
 			   for  (int  count=0;count<c*3;count++){	             
 			    		  BigDecimal number = new BigDecimal(lines[count]);

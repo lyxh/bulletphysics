@@ -69,7 +69,7 @@ import static com.bulletphysics.demos.opengl.IGL.*;
 public class BasicDemo extends DemoApplication {
 	private static final String NUM_TEXTURES = null;
 	
-	private static Long start_time;
+	private static Long start_time=System.currentTimeMillis();;
 	private ObjectArrayList<CollisionShape> collisionShapes = new ObjectArrayList<CollisionShape>();
 	private BroadphaseInterface broadphase;
 	private CollisionDispatcher dispatcher;
@@ -145,7 +145,7 @@ public class BasicDemo extends DemoApplication {
 		// step the simulation
 		if (dynamicsWorld != null) {
 			//TODO: set the time to be correct
-			if(counter==0){start_time = System.currentTimeMillis();	}
+			if(counter==0){	start_time = System.currentTimeMillis();}
 			dynamicsWorld.stepSimulation((float)time); //step the world once 1/5 sec.
 			
             InternalTickCallback cb=new Model1(dynamicsWorld, gl);//MyInternalTickCallback ();

@@ -51,7 +51,7 @@ public class Model2 extends InternalTickCallback{
 	public static int[] getInputDis(){return inputDistribution;}
 	
 
-	private static int continuing=5;
+	private static int continuing=20;
 	private String caseDataPath="D:\\Yixin\\model\\Case_Data_Model_2.txt";
 	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
 	private String caseDataPath2="D:\\Yixin\\model\\SecondCase_Data_Model_2.txt";
@@ -60,7 +60,7 @@ public class Model2 extends InternalTickCallback{
 	private IGL gl;
 	private static boolean sameForcesOverSeveralFrames=false;
    public static  int[] returnInputDis(){return inputDistribution;}
-	
+	private static boolean applyNew=false;
 	
 	public Model2(DynamicsWorld dy, IGL gl) {
 		this.dynamicsWorld=dy;
@@ -78,12 +78,14 @@ public class Model2 extends InternalTickCallback{
 		//record the position every 1/5 sec
 		
 		int count=BasicDemo2.getCount();
-		Long diff=(long)30;
+		Long diff=(long)40;
 	
 		long time=BasicDemo2.getTime();
+		applyNew=false;
 		//System.out.println("Time: "+time+"; Count:"+ count);
-		if(time<count*100+diff && time>count*100-diff){
+		if(time<count*200+diff && time>count*200-diff){
 			BasicDemo2.incrementCount();
+			applyNew=true;
 		  	System.out.println("Increment count to "+ count + " at time "+ time/1000);
 		  	//for every termite, record the position
 			 for (int j=0; j<termites.size(); j++) {
@@ -196,13 +198,11 @@ public class Model2 extends InternalTickCallback{
 			Vector3f localforce=getForceAngleFromDistribution(caseNum,caseCount);
 		    float rotatedAngle=(float)localforce.z;
 			localforce.z=0;
-			boolean rotate=false;
 			if (sameForcesOverSeveralFrames){
 				int counter=BasicDemo2.getCounter();
 				if (counter % continuing ==1 ){			
 			      localforce=getForceAngleFromDistribution(caseNum,caseCount);
 			      rotatedAngle=localforce.z/continuing;
-			      rotate=true;
 			      BasicDemo2.setForce(localforce,j);
 				}
 				else{
@@ -213,9 +213,9 @@ public class Model2 extends InternalTickCallback{
 			
 			rotatedAngle=(float) (rotatedAngle/Math.PI*180);
 			//System.out.println(localforce);
-			
+			if (applyNew){
             //System.out.println(rotatedAngle);
-            if (Math.abs(rotatedAngle)>3 && rotate==true){
+            if (Math.abs(rotatedAngle)>4){
 	            Transform tr=new Transform();
 				tr=body.getCenterOfMassTransform(tr);
 				Quat4f newAngle=new Quat4f();
@@ -237,11 +237,12 @@ public class Model2 extends InternalTickCallback{
 				}
 				
             }
-
+			 }
 			Vector3f globalForce=rotate(angle,localforce);
 			globalForce.z=pullDownForce;
 			body.setLinearVelocity(globalForce);
 			//drawLine(position,new Vector3f(position.x+globalForce.x,position.y+globalForce.y,position.z ),new Vector3f(1,1,0));
+		       
 		    }
 	}
 	
@@ -282,11 +283,12 @@ public class Model2 extends InternalTickCallback{
 		if (caseCount!=0){
 		        int random=(int) (Math.random()*(float)caseCount);
 		        if(random>=caseCount & (int)caseCount!=0){random=caseCount-1;}
-		          x=this.trackingData.get(caseNum)[random][0];
-		          y=this.trackingData.get(caseNum)[random][1];
-		          angle=this.trackingData.get(caseNum)[random][2];
+		          x=BasicDemo2.trackingData.get(caseNum)[random][0];
+		          y=BasicDemo2.trackingData.get(caseNum)[random][1];
+		          angle=BasicDemo2.trackingData.get(caseNum)[random][2];
 				
 		 }
+		//5 times the force
 		 Vector3f force=new Vector3f(x*5,y*5,angle);
 		return force;
 	}
