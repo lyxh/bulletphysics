@@ -38,7 +38,7 @@ public class Model1 extends InternalTickCallback{
 	public static int[] inputDistribution= new int[27];
 	private DynamicsWorld dynamicsWorld;
 	private IGL gl;
-	private float force;
+	private float forcex;
 	private static int continuing=1;
 	
 	public Model1(DynamicsWorld dy, IGL gl) {
@@ -175,9 +175,9 @@ public class Model1 extends InternalTickCallback{
 			int caseNum=values[0]+values[1]*3+values[3]*3*3;
 			inputDistribution[caseNum]+=1;
 			
-			force=(float) (7*(1-count/4100)*5);
+			forcex=(float) (10*(1-count/4001)*5);
 			
-			Vector3f localforce=new Vector3f(force,(float) (Math.random()*10-5),10);
+			Vector3f localforce=new Vector3f(forcex,(float) (Math.random()*10-5),10);
 		
 			
 	    	Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, 4);
