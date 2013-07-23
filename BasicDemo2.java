@@ -93,7 +93,7 @@ public class BasicDemo2 extends DemoApplication {
 	
 
 	private static ObjectArrayList<RigidBody> termites= new ObjectArrayList<RigidBody>();
-	private static int numOfTermites=19;
+	private static int numOfTermites=1;
 	private static int[] states=new int[numOfTermites];
 	private static float termiteRadius=5;
     private static float termiteLen=26;
@@ -130,7 +130,6 @@ public class BasicDemo2 extends DemoApplication {
 	public static int[] getStates(){return states;}
 	public static ArrayList<float[][]>  getData(){return trackingData;}
 	public static int[] getCaseCount() {return caseCount;}
-
 	public static  ArrayList<Vector3f>  getForce() {return force;}
 	public static void setForce(Vector3f newforce, int termite) {
 		force.set(termite,newforce);
@@ -153,7 +152,6 @@ public class BasicDemo2 extends DemoApplication {
 			//TODO: set the time to be correct
 			if(counter==0){start_time = System.currentTimeMillis();	}
 			dynamicsWorld.stepSimulation((float)time); //step the world once 1/5 sec.
-			
             InternalTickCallback cb=new Model2(dynamicsWorld, gl);//MyInternalTickCallback ();
 			Object worldUserInfo=0;
 			
@@ -163,19 +161,22 @@ public class BasicDemo2 extends DemoApplication {
 		time+=1;//getDeltaTimeMicroseconds()/1000000;
 		counter++;
 		renderme();
-		if(count==1000){
+		if(count==100){
+			System.out.println("update the case count");
+			
 			//re-read the data
 			this.caseCount=readCaseCount(caseCountPath2);
 			for (int i=0;i<27;i++){
-				float[][] data=new float[27][3];
+				int len=this.caseCount[i];
+				float[][] data=new float[len][3];
 				try {
 					data = readDistributionData(caseDataPath2, i);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}
+				}		
 				float[][] data2=this.trackingData.get(i);
 				data2=data;
+				System.out.println("Length of " + i+ " case:" + this.trackingData.get(i).length);
 			}
 		}
 		
@@ -183,7 +184,7 @@ public class BasicDemo2 extends DemoApplication {
 			//re-read the data
 			this.caseCount=readCaseCount(caseCountPath3);
 			for (int i=0;i<27;i++){
-				float[][] data=new float[27][3];
+				float[][] data=new float[this.caseCount[i]][3];
 				try {
 					data = readDistributionData(caseDataPath3, i);
 				} catch (IOException e) {
@@ -199,7 +200,7 @@ public class BasicDemo2 extends DemoApplication {
 			//re-read the data
 			this.caseCount=readCaseCount(caseCountPath4);
 			for (int i=0;i<27;i++){
-				float[][] data=new float[27][3];
+				float[][] data=new float[this.caseCount[i]][3];
 				try {
 					data = readDistributionData(caseDataPath4, i);
 				} catch (IOException e) {
