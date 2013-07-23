@@ -60,7 +60,7 @@ public class Model1 extends InternalTickCallback{
 	
 		long time=BasicDemo.getTime();
 		//System.out.println("Time: "+time+"; Count:"+ count);
-		if(time<count*100+diff && time>count*100-diff){
+		if(time<count*200+diff && time>count*200-diff){
 			BasicDemo.incrementCount();
 		  	System.out.println("Increment count to "+ count + " at time "+ time/1000);
 		  	//for every termite, record the position
@@ -90,7 +90,7 @@ public class Model1 extends InternalTickCallback{
 		}
 		
 	
-		force=(float) (6*(1-count/8000)*5)*2;
+		force=(float) (6*(1-count/8000)*5);
 	    for (int j=0; j<termites.size(); j++) {
 	    	RigidBody body= termites.get(j);	
 			Vector3f position= new Vector3f(0,0,0);
@@ -184,7 +184,7 @@ public class Model1 extends InternalTickCallback{
 			
 	    	boolean rotate=false;
 	    	double random=Math.random()*100;
-	    	double cut=70;
+	    	double cut=0;
 			//first, check for front
 			if (values[0]!=0 && random>cut){
 				if (values[3]==0 || values[1]==0){

@@ -102,7 +102,6 @@ public class BasicDemo extends DemoApplication {
     private static float time=0; 
     private static int count=1;
      
- 	private static int totalDataNum=11989;
  	//result(caseCount,3,caseNum) in matlab
  	public static ArrayList<float[][]> trackingData=new ArrayList<float[][]>();
 //	private String caseDataPath="//mit//liyixin//Desktop//SUMMER//model//Case_";
@@ -149,7 +148,7 @@ public class BasicDemo extends DemoApplication {
 			if(counter==0){	}
 			dynamicsWorld.stepSimulation((float)time); //step the world once 1/5 sec.
 			start_time = System.currentTimeMillis();
-            InternalTickCallback cb=new Model2(dynamicsWorld, gl);//MyInternalTickCallback ();
+            InternalTickCallback cb=new Model1(dynamicsWorld, gl);//MyInternalTickCallback ();
 			Object worldUserInfo=0;
 			
 			dynamicsWorld.setInternalTickCallback(cb, worldUserInfo);
@@ -366,13 +365,13 @@ public class BasicDemo extends DemoApplication {
 		for(int i=0;i<posList.size();i++){
 			ArrayList<Float> dataForOneTermite=posList.get(i);
 			String content = "";
-			for(int j=(block_num-1)*1000;j<block_num*1000;j++){
+			for(int j=(block_num-1)*4000;j<block_num*4000;j++){
 				Float point=dataForOneTermite.get(j);
 				content=content+point.toString()+ " ";
 			}
 			FileOutputStream fop = null;
 			File file;
-			String filename = "D:\\Yixin\\model\\data\\Model1Block"+block_num+"Term"+(i+1)+".txt";
+			String filename = "D:\\Yixin\\model\\1\\Model1Block"+block_num+"Term"+(i+1)+".txt";
 	 
 			try {
 				file = new File(filename);
