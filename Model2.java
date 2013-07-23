@@ -26,7 +26,7 @@ import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.linearmath.QuaternionUtil;
 import com.bulletphysics.linearmath.Transform;
 import com.bulletphysics.util.ObjectArrayList;
-import com.bulletphysics.BasicDemo;
+import com.bulletphysics.BasicDemo2;
 
 /**
  * The model that is similar to model 1. Only forward, side distance and angle rotated are taken into account
@@ -39,7 +39,7 @@ public class Model2 extends InternalTickCallback{
 	private static float termiteHalfLen;
 	private static int[] values=new int[4];
 	private static double angleRange=Math.PI/2;
-	private static float dishRadius=BasicDemo.getDishRadius();
+	private static float dishRadius=BasicDemo2.getDishRadius();
 	private static float small_dis=5;
 	private static float large_dis=20;
 
@@ -51,9 +51,11 @@ public class Model2 extends InternalTickCallback{
 	public static int[] getInputDis(){return inputDistribution;}
 	
 
-	private static int continuing=3;
+	private static int continuing=5;
 	private String caseDataPath="D:\\Yixin\\model\\Case_Data_Model_2.txt";
 	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
+	private String caseDataPath2="D:\\Yixin\\model\\SecondCase_Data_Model_2.txt";
+	private String caseCountPath2="D:\\Yixin\\model\\SecondCase_Count_Model_2.txt";
 	private DynamicsWorld dynamicsWorld;
 	private IGL gl;
 	private static boolean sameForcesOverSeveralFrames=false;
@@ -63,25 +65,25 @@ public class Model2 extends InternalTickCallback{
 	public Model2(DynamicsWorld dy, IGL gl) {
 		this.dynamicsWorld=dy;
 		this.gl=gl;
-		this.trackingData= BasicDemo.getData();
-		this.caseCount=BasicDemo.getCaseCount();
+		this.trackingData= BasicDemo2.getData();
+		this.caseCount=BasicDemo2.getCaseCount();
 	}
 	
 
 	public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {	
-		ObjectArrayList<RigidBody> termites= BasicDemo.getTermites();
-		ArrayList<ArrayList<Float>> posList=BasicDemo.getPositionList();
+		ObjectArrayList<RigidBody> termites= BasicDemo2.getTermites();
+		ArrayList<ArrayList<Float>> posList=BasicDemo2.getPositionList();
 		
 		
 		//record the position every 1/5 sec
 		
-		int count=BasicDemo.getCount();
+		int count=BasicDemo2.getCount();
 		Long diff=(long)30;
 	
-		long time=BasicDemo.getTime();
+		long time=BasicDemo2.getTime();
 		//System.out.println("Time: "+time+"; Count:"+ count);
 		if(time<count*100+diff && time>count*100-diff){
-			BasicDemo.incrementCount();
+			BasicDemo2.incrementCount();
 		  	System.out.println("Increment count to "+ count + " at time "+ time/1000);
 		  	//for every termite, record the position
 			 for (int j=0; j<termites.size(); j++) {
@@ -97,7 +99,7 @@ public class Model2 extends InternalTickCallback{
 					float angle=getAngle(orientation);
 					//System.out.println(angle);
 					//position, angle correct 
-					float terLen=BasicDemo.getTermiteLen();
+					float terLen=BasicDemo2.getTermiteLen();
 					termiteHalfLen=(terLen/2);
 					float head_x=(float) (center_x+termiteHalfLen*Math.cos(angle));
 					float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
@@ -121,7 +123,7 @@ public class Model2 extends InternalTickCallback{
 			float center_x=position.x;
 			float center_y=position.y;
 			float angle=getAngle(orientation);
-			float terLen=BasicDemo.getTermiteLen();
+			float terLen=BasicDemo2.getTermiteLen();
 			termiteHalfLen=(terLen/2);
 			float head_x=(float) (center_x+termiteHalfLen*Math.cos(angle));
 			float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
@@ -139,7 +141,7 @@ public class Model2 extends InternalTickCallback{
 			}	 
 			
 			//2.check for other termites
-			for (int otherTer=0; otherTer<BasicDemo.getTermiteCount();otherTer++){
+			for (int otherTer=0; otherTer<BasicDemo2.getTermiteCount();otherTer++){
 				if (j!=otherTer){
 					//First, calculate the distance between two termites(center of the other termite- head position of this termite)
 					Vector3f other_position= new Vector3f(0,0,0);
@@ -196,16 +198,16 @@ public class Model2 extends InternalTickCallback{
 			localforce.z=0;
 			boolean rotate=false;
 			if (sameForcesOverSeveralFrames){
-				int counter=BasicDemo.getCounter();
+				int counter=BasicDemo2.getCounter();
 				if (counter % continuing ==1 ){			
 			      localforce=getForceAngleFromDistribution(caseNum,caseCount);
-			      rotatedAngle=localforce.z;
+			      rotatedAngle=localforce.z/continuing;
 			      rotate=true;
-			      BasicDemo.setForce(localforce,j);
+			      BasicDemo2.setForce(localforce,j);
 				}
 				else{
-					localforce=BasicDemo.getForce().get(j);
-					rotatedAngle=(float) (localforce.z);
+					localforce=BasicDemo2.getForce().get(j);
+					rotatedAngle=(float) (localforce.z)/continuing;
 				}
 			}
 			

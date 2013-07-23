@@ -136,8 +136,10 @@ public class Model0 extends InternalTickCallback{
 			drawLine(from,right_to,color);
 			
 			//Get the input case number
+			
 			int caseNum=values[0]+values[1]*3+values[3]*3*3;
 			inputDistribution[caseNum]+=1;
+			
 			Vector3f localforce=new Vector3f(20,0,10);
 			if (values[0]!=0){
 				if (values[3]==0 || values[1]==0){
@@ -154,12 +156,6 @@ public class Model0 extends InternalTickCallback{
 			    tr.setRotation(rotation);
 		        body.setCenterOfMassTransform(tr); 
 		        newAngle=body.getOrientation(newAngle);
-			  // Vector3f rotateForce=rotate(rotatedAngle,localforce);
-			  // Vector3f rotateGlobalForce=rotate(angle,rotateForce);
-			   //Vector3f negRotateGlocalForce=new Vector3f(-rotateGlobalForce.x,-rotateGlobalForce.y,rotateGlobalForce.z);
-			  /// body.applyForce(negRotateGlocalForce,rotateGlobalForce );
-			   //drawLine(new Vector3f(head_x,head_y,position.z),new Vector3f(head_x+rotateGlobalForce.x*2,head_y+rotateGlobalForce.y*2,position.z ),new Vector3f(1,0,0));
-			   //drawLine(new Vector3f(head_x,head_y,position.z),new Vector3f(head_x+rotateGlobalForce.x*2,head_y+rotateGlobalForce.y*2,position.z ),new Vector3f(1,0,0));
 				}
 			}
 			
@@ -362,6 +358,6 @@ public class Model0 extends InternalTickCallback{
 			globalForce.z=1;//localforce.dot(new Vector3f(t.basis.m02, t.basis.m12, t.basis.m22));
 	        return globalForce;
 	        }
-	   
+
 	}
 

@@ -66,7 +66,7 @@ import static com.bulletphysics.demos.opengl.IGL.*;
 
 /**
  */
-public class BasicDemo extends DemoApplication {
+public class BasicDemo2 extends DemoApplication {
 	private static final String NUM_TEXTURES = null;
 	
 	private static Long start_time;
@@ -106,13 +106,19 @@ public class BasicDemo extends DemoApplication {
  	public static ArrayList<float[][]> trackingData=new ArrayList<float[][]>();
 //	private String caseDataPath="//mit//liyixin//Desktop//SUMMER//model//Case_";
 //	private String caseCountPath="//mit//liyixin//Desktop//SUMMER//model//Case_Count_Model_2.txt";
- 	private String caseDataPath="D:\\Yixin\\model\\Case_";
- 	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
+	private String caseDataPath="D:\\Yixin\\model\\Case_.txt";
+	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
+	private String caseDataPath2="D:\\Yixin\\model\\SecondCase_.txt";
+	private String caseCountPath2="D:\\Yixin\\model\\SecondCase_Count_Model_2.txt";
+	private String caseDataPath3="D:\\Yixin\\model\\ThirdCase_.txt";
+	private String caseCountPath3="D:\\Yixin\\model\\ThirdCase_Count_Model_2.txt";
+	private String caseDataPath4="D:\\Yixin\\model\\ForthCase_.txt";
+	private String caseCountPath4="D:\\Yixin\\model\\ForthCase_Count_Model_2.txt";
 	private static int[] caseCount=new int[27];
 	private static ArrayList<Vector3f> force=new ArrayList<Vector3f>();
 	public static int counter=0;
  	
-	public BasicDemo(IGL gl) {super(gl);}  
+	public BasicDemo2(IGL gl) {super(gl);}  
 	public static ObjectArrayList<RigidBody> getTermites(){	return termites;}	
 	public static ArrayList<ArrayList<Float>> getPositionList(){return positionList;}	
 	public static BvhTriangleMeshShape getSoilMesh(){	return soil;}
@@ -157,6 +163,53 @@ public class BasicDemo extends DemoApplication {
 		time+=1;//getDeltaTimeMicroseconds()/1000000;
 		counter++;
 		renderme();
+		if(count==1000){
+			//re-read the data
+			this.caseCount=readCaseCount(caseCountPath2);
+			for (int i=0;i<27;i++){
+				float[][] data=new float[27][3];
+				try {
+					data = readDistributionData(caseDataPath2, i);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				float[][] data2=this.trackingData.get(i);
+				data2=data;
+			}
+		}
+		
+		if(count==2000){
+			//re-read the data
+			this.caseCount=readCaseCount(caseCountPath3);
+			for (int i=0;i<27;i++){
+				float[][] data=new float[27][3];
+				try {
+					data = readDistributionData(caseDataPath3, i);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				float[][] data2=this.trackingData.get(i);
+				data2=data;
+			}
+		}
+		
+		if(count==3000){
+			//re-read the data
+			this.caseCount=readCaseCount(caseCountPath4);
+			for (int i=0;i<27;i++){
+				float[][] data=new float[27][3];
+				try {
+					data = readDistributionData(caseDataPath4, i);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				float[][] data2=this.trackingData.get(i);
+				data2=data;
+			}
+		}
 		
 		if(count==4000)	{
             	toTxtFile(positionList,1);	toTxtFile(positionList,2);	toTxtFile(positionList,3);	toTxtFile(positionList,4);
@@ -345,10 +398,10 @@ public class BasicDemo extends DemoApplication {
 			positionList.add(posList);
 		}
 		
-	//	this.caseCount=readCaseCount(caseCountPath);
+		this.caseCount=readCaseCount(caseCountPath);
 		for (int i=0;i<27;i++){
-		//	float[][] data=readDistributionData(caseDataPath, i);
-		//	this.trackingData.add(data);
+			float[][] data=readDistributionData(caseDataPath, i);
+			this.trackingData.add(data);
 			force.add(new Vector3f(0,0,0));
 		}
 		
@@ -371,7 +424,7 @@ public class BasicDemo extends DemoApplication {
 			}
 			FileOutputStream fop = null;
 			File file;
-			String filename = "D:\\Yixin\\model\\1\\Model1Block"+block_num+"Term"+(i+1)+".txt";
+			String filename = "D:\\Yixin\\model\\2\\Model2Block"+block_num+"Term"+(i+1)+".txt";
 	 
 			try {
 				file = new File(filename);
@@ -450,7 +503,7 @@ public class BasicDemo extends DemoApplication {
 	
 	
 	public static void main(String[] args) throws LWJGLException, IOException {
-		BasicDemo ccdDemo = new BasicDemo(LWJGL.getGL());
+		BasicDemo2 ccdDemo = new BasicDemo2(LWJGL.getGL());
 		ccdDemo.initPhysics();
 		ccdDemo.getDynamicsWorld().setDebugDrawer(new GLDebugDrawer(LWJGL.getGL()));
 		LWJGL.main(args, 800, 600, "Termite", ccdDemo);

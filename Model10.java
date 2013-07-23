@@ -126,6 +126,9 @@ public class Model10 extends InternalTickCallback{
 				}
 			}
 			
+			
+
+			float force=(float) (6*(1-0/5000)*5);
 			//Get the input case number
 			int caseNum=values[0]+values[1]*3+values[3]*3*3;
 			inputDistribution[caseNum]+=1;

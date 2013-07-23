@@ -90,7 +90,7 @@ public class Model1 extends InternalTickCallback{
 		}
 		
 	
-		force=(float) (6*(1-count/8000)*5);
+		
 	    for (int j=0; j<termites.size(); j++) {
 	    	RigidBody body= termites.get(j);	
 			Vector3f position= new Vector3f(0,0,0);
@@ -174,45 +174,50 @@ public class Model1 extends InternalTickCallback{
 			//Get the input case number
 			int caseNum=values[0]+values[1]*3+values[3]*3*3;
 			inputDistribution[caseNum]+=1;
-			Vector3f localforce=new Vector3f(force,0,10);
+			
+			force=(float) (7*(1-count/4100)*5);
+			
+			Vector3f localforce=new Vector3f(force,(float) (Math.random()*10-5),10);
 		
 			
 	    	Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, 4);
-	    	float rotatedAngle=60;
+	    	float rotatedAngle=90;
 			Transform tr=new Transform();
 			tr=body.getCenterOfMassTransform(tr);
 			
 	    	boolean rotate=false;
 	    	double random=Math.random()*100;
-	    	double cut=0;
+	    	double cut=50;
 			//first, check for front
-			if (values[0]!=0 && random>cut){
+			if (values[0]!=0 && random>cut){ // and
 				if (values[3]==0 || values[1]==0){
                 rotate=true;
-		    	if (values[3]==0){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); }  //if nothing on the right, turn right:positive
-				if (values[1]==0){ rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}		 //if nothing on the left, turn left
+                if (values[1]==0 ){ rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}		 //if nothing on the left, turn left
+		    	if (values[3]==0 ){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); }  //if nothing on the right, turn right:positive
+				if (values[3]==0 && values[1]==0){
+					if (j>10){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}
+					else{rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}
+				}
 				}
 			}
-			
-
-			//next, check for left
-			if (values[1]!=0 && random>cut){
-				if (values[0]==0 || values[3]==0){
-				rotate=true;
-				tr=body.getCenterOfMassTransform(tr);
-				if (values[3]==0){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); }  //if nothing on the right, turn right:positive
-				if (values[0]==0){ rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, 10); }		 //if nothing on the left, turn a bit right
-				}
-			}
-			
 			//finally, check for right
 			if (values[3]!=0 && random>cut){
 				if (values[0]==0 || values[1]==0){
-				rotate=true;
-				if (values[0]==0){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0,10); rotation.inverse();}  //if nothing on the front, turn a bit left
-				if (values[1]==0){ rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}		 //if nothing on the left, turn left
+				if (values[0]==0){rotate=false;}  //if nothing on the front,don't turn
+				if (values[1]==0){ rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}		 //if nothing on the left, turn left
 				}
-			}		
+			}
+         
+			//next, check for left
+			if (values[1]!=0 && random>cut){
+				if (values[0]==0 || values[3]==0){
+					if (values[0]==0){ rotate=false; }		 //if nothing on the left, turn a bit right
+				if (values[3]==0){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); }  //if nothing on the right, turn right:positive
+			
+				}
+			}
+			
+		
 	    	
 			if(rotate){
 				localforce=new Vector3f(-10,0,10);
