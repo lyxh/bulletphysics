@@ -183,11 +183,6 @@ public class Model2 extends InternalTickCallback{
 			//System.out.println(caseNum);
 			inputDistribution[caseNum]+=1;
 			int caseCount=BasicDemo2.getCaseCount()[caseNum];
-			
-			if (count>89){
-				System.out.println("CaseNum:"+caseNum);
-				System.out.println("caseCount"+caseCount);
-				}
 			Vector3f localforce=getForceAngleFromDistribution(caseNum,caseCount);
 		    float rotatedAngle=(float)localforce.z;
 			localforce.z=0;
@@ -269,7 +264,7 @@ public class Model2 extends InternalTickCallback{
 	 * @param data randomly drawn from the sample pool, in form of (x,y,angle)
 	 * @return
 	 */
-	 private Vector3f getForceAngleFromDistribution(int caseNum,int caseCount) {
+	 private synchronized Vector3f getForceAngleFromDistribution(int caseNum,int caseCount) {
         float x=10;
 	    float y=0;
 	    float angle=0;
