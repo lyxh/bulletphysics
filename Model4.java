@@ -1,15 +1,18 @@
 package com.bulletphysics;
 
 import static com.bulletphysics.demos.opengl.IGL.GL_LINES;
+
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+
 import javax.vecmath.Matrix3f;
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Quat4f;
 import javax.vecmath.Vector3f;
+
 import com.bulletphysics.demos.opengl.IGL;
 import com.bulletphysics.dynamics.DynamicsWorld;
 import com.bulletphysics.dynamics.InternalTickCallback;
@@ -20,15 +23,13 @@ import com.bulletphysics.util.ObjectArrayList;
 /**
  * Added soil building.
  * Model used to compare with model 4. Random building/digging behavior.
- * 1. Termites start digging randomly.
+ * 1. Termites start digging the soil when they see an exiting digging site on the front(with some probability).
  * 2. A dig is consider successful if termites unmoved for 3 sec(15 frame).
- * 3. Deposit the soil randomly
- * (at each step, determine if deposit by drawing a random number and testing if the number is larger than 0.8. If yes, deposit. If not, do not deposit.).
-
+ * 3. Termites deposit soil when they see an existing depositing site on the front.
  *
  */
 public class Model4 extends InternalTickCallback{	
-	private static int range=20;//how far away the termite could sense
+	private static int range=30;//how far away the termite could sense
 	private static float termiteHalfLen;
 	private static int[] values=new int[4];
 	private static double angleRange=Math.PI/2;
@@ -36,15 +37,14 @@ public class Model4 extends InternalTickCallback{
     private static int digDepositDuration=20;
 	public static int[] inputDistribution= new int[27];
 	private int pullDownForce=5;
-	private static double randomStart=0.98;
+	private static double randomStart=0.9;
 	private static double randomEnd=0.9;
 	private DynamicsWorld dynamicsWorld;
 	private IGL gl;
 	private static boolean applyNew=false;
 	public static int[] getInputDis(){return inputDistribution;}
    public static  int[] returnInputDis(){return inputDistribution;}
-	
-	
+	public static ArrayList<Float> soilHeightMap= new ArrayList<Float> ();
 	public Model4(DynamicsWorld dy, IGL gl) {
 		this.dynamicsWorld=dy;
 		this.gl=gl;
@@ -129,6 +129,7 @@ public class Model4 extends InternalTickCallback{
 					//int curState=BuildingDemo.getState(j);
 					//Vector3f localforce=getForce(curState,caseNum,caseCount);	
 					int nextState=changeState(j,position, head_x,head_y);
+				
 					BuildingDemo.setState(nextState, j);
 			     	Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, 4);
 					Transform tr=new Transform();
@@ -178,14 +179,16 @@ public class Model4 extends InternalTickCallback{
 		    }
 	}
 	
+	
 	private int changeState(int termite, Vector3f position, float head_x, float head_y) {
 		int currentState=BuildingDemo.getState(termite);
 		int nextState=currentState;
 		ObjectArrayList<RigidBody> termites= BuildingDemo.getTermites();
-		//if in state 0(moving), start dig if drawing a random number that is larger than randomStart;
+		//if in state 0(moving), start dig if drawing a random number that is larger than randomStart and seeing a deposit at the front;
 		if (currentState==0){
 			int inStateZero=BuildingDemo.getTimeInState(termite)[0];
-			if (Math.random()>randomStart){
+			if (Math.random()>randomStart ||  Construction.nearDig(head_x, head_y)){
+				if( Construction.nearDig(head_x, head_y)){System.out.println("Near Digging site");}
 				nextState=1;
 				//dig, change mesh height
 				Construction.dig(termites.get(termite), position,head_x,head_y,dynamicsWorld);
@@ -218,7 +221,8 @@ public class Model4 extends InternalTickCallback{
 		//if in state 2(moving), deposit with random chance
 		if (currentState==2){
 			int inStateTwo=BuildingDemo.getTimeInState(termite)[2];
-			if (Math.random()>randomEnd){
+			if (Math.random()>randomEnd || Construction.nearDep(head_x, head_y)){
+				if( Construction.nearDep(head_x, head_y)){System.out.println("Near Depositing site");}
 				nextState=3;
 				//dig, change mesh height
 				Construction.deposit(termites.get(termite),  head_x,head_y,dynamicsWorld);

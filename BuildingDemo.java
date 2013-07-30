@@ -88,25 +88,17 @@ public class BuildingDemo extends DemoApplication {
 	
 
 	private static ObjectArrayList<RigidBody> termites= new ObjectArrayList<RigidBody>();
-	private static int numOfTermites=22;
+	private static int numOfTermites=1;
 	private static int[] states=new int[numOfTermites];
 	private static ArrayList<int[]> timeSpentInOneState= new ArrayList<int[]>();
 	private static float termiteRadius=5;
     private static float termiteLen=26;
     private float termiteHeight=-6;
     private static ArrayList<ArrayList<Float>> positionList= new ArrayList<ArrayList<Float>>();
-    private static float time=0; 
 	private static Long start_time;
- 	private static int totalDataNum=11989;
- 	//result(caseCount,3,caseNum) in matlab
  	public static ArrayList<float[][]> trackingData=new ArrayList<float[][]>();
-	//private String caseDataPath="//mit//liyixin//Desktop//SUMMER//model//Case_";
-	//private String caseCountPath="//mit//liyixin//Desktop//SUMMER//model//Case_Count_Model_2.txt";
- 	//private String caseDataPath="D:\\Yixin\\model\\Case_";
- 	//private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
  	private static int count=0;
  	private static int[] caseCount=new int[27];
-	private static ArrayList<Vector3f> force=new ArrayList<Vector3f>();
 	private static int counter=0;
 	public static ArrayList<Float> soilMeshHeight=new ArrayList<Float>();
 	
@@ -123,14 +115,14 @@ public class BuildingDemo extends DemoApplication {
 	
 	public static float getTermiteLen(){return termiteLen;}
 	public static float getTermiteRad(){return termiteRadius;}
-	public static float getDishRadius(){return dishRadius;}
+	public static int getDishRadius(){return dishRadius;}
 	public static int getTermiteCount(){return numOfTermites;}
 	public static int[] getStates(){return states;}
 	public static ArrayList<float[][]>  getData(){return trackingData;}
 	public static int[] getCaseCount() {return caseCount;}
 	public static int getCounter() {return counter;}
-	public static  ArrayList<Vector3f>  getForce() {return force;}
-	public static void setForce(Vector3f newforce, int termite) {force.set(termite,newforce);}
+
+	
 	public static int getState(int i){return states[i];}
 	public static void setState(int newstate, int i){states[i]=newstate;}
 	public static int[] getTimeInState(int termite){return timeSpentInOneState.get(termite);}
@@ -143,6 +135,7 @@ public class BuildingDemo extends DemoApplication {
     	Float old=soilMeshHeight.get(pointNum);
     	old=newVal;
     	}
+    public static  ArrayList<Float>  getHeight(){return soilMeshHeight;}
 	static ObjectArrayList<CollisionShape> getColliShape(){return collisionShapes;}
 	public static void setgVertices(ByteBuffer newVer){gVertices=newVer;}
 	
@@ -164,7 +157,7 @@ public class BuildingDemo extends DemoApplication {
 		if (dynamicsWorld != null) {
 			if(counter==0){	start_time = System.currentTimeMillis();}
 			dynamicsWorld.stepSimulation((float)1/60); //step the world once 1/5 sec.
-            InternalTickCallback cb=new Model3(dynamicsWorld, gl);//MyInternalTickCallback ();
+            InternalTickCallback cb=new Model4(dynamicsWorld, gl);//MyInternalTickCallback ();
 			Object worldUserInfo=0;
 			
 			dynamicsWorld.setInternalTickCallback(cb, worldUserInfo);
@@ -175,14 +168,10 @@ public class BuildingDemo extends DemoApplication {
 		if(count==1000)	{		
         	toTxtFile(positionList,1);	//toTxtFile(positionList,2);	toTxtFile(positionList,3);	toTxtFile(positionList,4);
 		    String start="input=[";
-		    for (int i=0;i<27;i++){ 
-				start+=(Model3.getInputDis()[i]+","); 	    
-		    }    
+		    for (int i=0;i<27;i++){ start+=(Model4.getInputDis()[i]+","); }    
 		    start+="];";
 		 System.out.println(start);
          }
-		//glFlush();
-		//glutSwapBuffers();
 	}
 
 	
@@ -357,7 +346,7 @@ public class BuildingDemo extends DemoApplication {
 		}
 		
 		for (int i=0;i<=26;i++){
-			force.add(new Vector3f(0,0,0));
+			
 			int[] s=new int[4];
 			for (int state=0;state<=3;state++){
 				s[state]=0;
