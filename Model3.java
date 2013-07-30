@@ -134,11 +134,9 @@ public class Model3 extends InternalTickCallback{
 			float front_to_x=(float) (head_x+range*Math.cos(angle));
 			float front_to_y=(float) (head_y+range*Math.sin(angle));
 			Vector3f front_to=new Vector3f(front_to_x,front_to_y,position.z);
-			
 			float left_to_x=(float) (head_x+range*Math.cos(angle+Math.PI/2));
 			float left_to_y=(float) (head_y+range*Math.sin(angle+Math.PI/2));
 			Vector3f left_to=new Vector3f(left_to_x,left_to_y,position.z);
-			
 			float right_to_x=(float) (head_x+range*Math.cos(angle-Math.PI/2));
 			float right_to_y=(float) (head_y+range*Math.sin(angle-Math.PI/2));
 			Vector3f right_to=new Vector3f(right_to_x,right_to_y,position.z);
@@ -148,7 +146,6 @@ public class Model3 extends InternalTickCallback{
 			drawLine(from,left_to,color);
 			drawLine(from,right_to,color);
 				
-			//System.out.println(caseNum);
 			inputDistribution[caseNum]+=1;
 			int caseCount=this.caseCount[caseNum];
 			
@@ -158,6 +155,7 @@ public class Model3 extends InternalTickCallback{
 			int nextState=changeState(j,position, head_x,head_y);
 			BuildingDemo.setState(nextState, j);
 			localforce=getForceAngleFromDistribution(caseNum,caseCount);
+			//change to something else!
 		    float rotatedAngle=(float)localforce.z;
 			localforce.z=0;
 			boolean rotate=false;

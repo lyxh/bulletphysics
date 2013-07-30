@@ -167,7 +167,7 @@ public class Model1 extends InternalTickCallback{
 					forcex=(float) (30-(count/1000.0)*4);
 					//add some randomness
 					Vector3f localforce=new Vector3f(forcex+(float) (Math.random()*10-5),(float) ((float) (Math.random()*10-5)),5);
-					 if ( values[3]!=0 && values[1]!=0 && values[0]!=0){localforce=new Vector3f(-5,0,5);/*go back*/ }
+					// if ( values[3]!=0 && values[1]!=0 && values[0]!=0){localforce=new Vector3f(-5,0,5);/*go back*/ }
 					 if(increased){
 					     	Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, 4);
 							Transform tr=new Transform();
@@ -178,15 +178,16 @@ public class Model1 extends InternalTickCallback{
 					     	//2:0.9272; 2.5:0.76;(45)5:0.394; 10:0.2; 20:0.1; 30:0.0666;40:0.05;50:0.04  
 							boolean rotate=false;
 					    	double random=Math.random()*100;
-					    	double cut=50;
-					    	double cut2=80;
+					    	double cut=0;
+					    	double cut2=0;
 					    	double r=Math.random();
 							//first, check for front .inverse turn left
-					       if (values[0]!=0 && random>cut){
+					    	//TODO: What does cut2 means
+					       if (values[0]!=0 ){
 								if (values[3]==0 || values[1]==0 ){
 					                rotate=true;
+					                if (values[3]==0 ){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); }  //if nothing on the right, turn right:positive
 					                if (values[1]==0 ){ rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}		 //if nothing on the left, turn left
-							    	if (values[3]==0 ){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); }  //if nothing on the right, turn right:positive
 									if (values[3]==0 && values[1]==0){
 										if(random>cut2){
 										if (r>0.5){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}
@@ -201,9 +202,12 @@ public class Model1 extends InternalTickCallback{
 							}
 					    	else{ //when the front is empty
 					    		 //right not empty, left empty, turn to left a bit
-								 if ( values[3]!=0 && values[1]==0 && random>cut){ rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);rotation.inverse();  }	
-								//left not empty, right empty, turn to right a bit
-								 if ( values[1]!=0 && values[3]==0 && random>cut){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}  //if nothing on the right, turn right:positive
+								 if ( values[3]==2 && values[1]==0 ){ rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);rotation.inverse();  }	
+								 if ( values[3]==1 && values[1]==0 && random>cut){ rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);rotation.inverse();  }	
+								 //left not empty, right empty, turn to right a bit
+								 if ( values[1]==2 && values[3]==0 ){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}  //if nothing on the right, turn right:positive
+								 if ( values[1]==1 && values[3]==0 && random>cut){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}  //if nothing on the right, turn right:positive
+								 
 								 if ( values[3]!=0 && values[1]!=0){localforce=new Vector3f(-5,0,5);/*go back*/ }
 					    	
 				          }
