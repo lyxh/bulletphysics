@@ -49,7 +49,6 @@ import com.bulletphysics.dynamics.InternalTickCallback;
 import com.bulletphysics.dynamics.RigidBody;
 import com.bulletphysics.dynamics.RigidBodyConstructionInfo;
 import com.bulletphysics.dynamics.constraintsolver.ConstraintSolver;
-import com.bulletphysics.dynamics.constraintsolver.HingeConstraint;
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver;
 import com.bulletphysics.linearmath.DefaultMotionState;
 import com.bulletphysics.linearmath.MotionState;
@@ -67,8 +66,6 @@ import static com.bulletphysics.demos.opengl.IGL.*;
 /**
  */
 public class BasicDemo2 extends DemoApplication {
-	private static final String NUM_TEXTURES = null;
-	
 	private static Long start_time;
 	private ObjectArrayList<CollisionShape> collisionShapes = new ObjectArrayList<CollisionShape>();
 	private BroadphaseInterface broadphase;
@@ -83,7 +80,6 @@ public class BasicDemo2 extends DemoApplication {
 	private int dishHeight=30;
 	
 	private static BvhTriangleMeshShape soil;
-	private int soilHeight=0;
 	private static RigidBody soilBody;
 	private static ByteBuffer gVertices;
 	private static ByteBuffer gIndices;
@@ -262,12 +258,6 @@ public class BasicDemo2 extends DemoApplication {
 	
 	public void initPhysics() throws IOException {
 		setCameraDistance(250f);
-		Object imageFilename;
-		//TODO: Set the texture of termites,floor, wall
-		//loadBMP(imageFilename);   // Load BMP image
-		//Object textureIDs;
-		//glGenTextures(1, textureIDs); // Generate 1 texture ID
-		
 		// collision configuration contains default setup for memory, collision setup
 		collisionConfiguration = new DefaultCollisionConfiguration();
 		// use the default collision dispatcher. For parallel processing you can use a diffent dispatcher (see Extras/BulletMultiThreaded)
@@ -409,10 +399,10 @@ public class BasicDemo2 extends DemoApplication {
 			float center_x=x;
 			float center_y=y;
 			float termiteHalfLen=(termiteLen/2);
-			float head_x=(float) (center_x+termiteHalfLen*Math.cos(angle));
-			float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
-			float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
-			float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
+			float head_x=(float) (center_x+termiteHalfLen*Math.cos(angl));
+			float head_y=(float) (center_y+termiteHalfLen*Math.sin(angl));
+			float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angl));
+			float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angl));
 			
 			ArrayList<Float> posList=new ArrayList<Float>();
 			posList.add(head_x);	posList.add(head_y);	posList.add(tail_x);	posList.add(tail_y);
@@ -528,8 +518,7 @@ public class BasicDemo2 extends DemoApplication {
 		BasicDemo2 ccdDemo = new BasicDemo2(LWJGL.getGL());
 		ccdDemo.initPhysics();
 		ccdDemo.getDynamicsWorld().setDebugDrawer(new GLDebugDrawer(LWJGL.getGL()));
-		LWJGL.main(args, 800, 600, "Termite", ccdDemo);
-		
+		LWJGL.main(args, 800, 600, "Termite", ccdDemo);	
 	}
 
 
@@ -549,9 +538,7 @@ public class BasicDemo2 extends DemoApplication {
 			euler.z=(float) Math.asin(2.0 * (w*y - x*z));
 		    return euler.y;		  //we want yaw
 	  }
-	public static int getCounter() {
-		return counter;
-	}
+	public static int getCounter() {return counter;}
 
 
 

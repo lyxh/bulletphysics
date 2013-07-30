@@ -19,12 +19,12 @@ import com.bulletphysics.util.ObjectArrayList;
 
 /**
  * Added soil building.
- * Model based on inspection. Start building by random chance. Speed slow, rotation slow.
- * Building successful if remain in the same position for 10 count.
- * Put down soil when seeing the dish.
- * TODO: If input distribution is different for carrying soil around.
- * 
- * @author ssr
+ * Model used to compare with model 4. Random building/digging behavior.
+ * 1. Termites start digging randomly.
+ * 2. A dig is consider successful if termites unmoved for 3 sec(15 frame).
+ * 3. Deposit the soil randomly
+ * (at each step, determine if deposit by drawing a random number and testing if the number is larger than 0.8. If yes, deposit. If not, do not deposit.).
+
  *
  */
 public class Model4 extends InternalTickCallback{	
@@ -33,30 +33,21 @@ public class Model4 extends InternalTickCallback{
 	private static int[] values=new int[4];
 	private static double angleRange=Math.PI/2;
 	private static float dishRadius=BuildingDemo.getDishRadius();
-	private static float small_dis=5;
-	private static float large_dis=20;
     private static int digDepositDuration=20;
-
- 	private ArrayList<float[][]> trackingData=new ArrayList<float[][]>();
-	private int[] caseCount=new int[27];
 	public static int[] inputDistribution= new int[27];
 	private int pullDownForce=5;
-	public static int[] getInputDis(){return inputDistribution;}
-	
-
-	private static int continuing=3;
+	private static double randomStart=0.98;
+	private static double randomEnd=0.9;
 	private DynamicsWorld dynamicsWorld;
 	private IGL gl;
-	private static boolean sameForcesOverSeveralFrames=true;
 	private static boolean applyNew=false;
+	public static int[] getInputDis(){return inputDistribution;}
    public static  int[] returnInputDis(){return inputDistribution;}
 	
 	
 	public Model4(DynamicsWorld dy, IGL gl) {
 		this.dynamicsWorld=dy;
 		this.gl=gl;
-		this.trackingData= BuildingDemo.getData();
-		this.caseCount=BuildingDemo.getCaseCount();
 	}
 	
 
@@ -191,10 +182,10 @@ public class Model4 extends InternalTickCallback{
 		int currentState=BuildingDemo.getState(termite);
 		int nextState=currentState;
 		ObjectArrayList<RigidBody> termites= BuildingDemo.getTermites();
-		//if in state 0(moving), start dig by a random chance, 
+		//if in state 0(moving), start dig if drawing a random number that is larger than randomStart;
 		if (currentState==0){
 			int inStateZero=BuildingDemo.getTimeInState(termite)[0];
-			if (inStateZero>digDepositDuration){
+			if (Math.random()>randomStart){
 				nextState=1;
 				//dig, change mesh height
 				Construction.dig(termites.get(termite), position,head_x,head_y,dynamicsWorld);
@@ -207,6 +198,7 @@ public class Model4 extends InternalTickCallback{
 			    BuildingDemo.setTimeInState(termite,0,dur);
 			}
 		}
+		
 		//if in state 1(digging), start moving soil if have been dig for digDepositDuration
 		if (currentState==1){
 			int inStateOne=BuildingDemo.getTimeInState(termite)[1];
@@ -223,10 +215,10 @@ public class Model4 extends InternalTickCallback{
 			}
 		}
 		
-		//if in state 1(digging), start moving soil if have been dig for digDepositDuration or an existing depositing site is within sensing distance
+		//if in state 2(moving), deposit with random chance
 		if (currentState==2){
 			int inStateTwo=BuildingDemo.getTimeInState(termite)[2];
-			if (inStateTwo>digDepositDuration){
+			if (Math.random()>randomEnd){
 				nextState=3;
 				//dig, change mesh height
 				Construction.deposit(termites.get(termite),  head_x,head_y,dynamicsWorld);

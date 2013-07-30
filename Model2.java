@@ -202,7 +202,6 @@ public class Model2 extends InternalTickCallback{
 				int counter=BasicDemo2.getCounter();
 				if (counter % continuing ==1 ){			
 			      localforce=getForceAngleFromDistribution(caseNum,caseCount);
-			      rotatedAngle= rotatedAngle;
 			      BasicDemo2.setForce(localforce,j);
 				}
 				else{
@@ -251,21 +250,6 @@ public class Model2 extends InternalTickCallback{
 		    return new Vector3f(x,y,v.z);
     }
 	
-	/**
-	 * The angle is in decimal, original  -->0; left:-pi, right:+pi
-	 * Want: <--0; left:-pi;right+pi
-	 * Examples: 0->pi,-pi/4->pi*3/4,pi/4->-pi*3/4
-	 * @param angle
-	 * @return
-	 */
-	private float changeAngle(float angle) {
-		//first, flip the sigh
-		angle=angle*(float)-1;
-		//complement it with pi
-		if (angle>=0){angle=(float) (Math.PI-angle);}
-		else{angle=(float) (-Math.PI-angle);}
-		return angle;
-	}
 
 	/**
 	 * 
@@ -289,24 +273,6 @@ public class Model2 extends InternalTickCallback{
 		return force;
 	}
 
-
-	
-
-	
-	private int[] readCaseCount(String filePath) {
-		int[] result=new int[27];
-		byte[] buffer = new byte[(int) new File(filePath).length()];
-	    BufferedInputStream f = null;
-	    try {f = new BufferedInputStream(new FileInputStream(filePath));
-	        f.read(buffer);
-	        if (f != null) try { f.close(); } catch (IOException ignored) { }} 
-        catch (IOException ignored) { System.out.println("File not found or invalid path.");}			    
-	    String[] strings=(new String(buffer)).split("\\s+");
-	    for (int i=0; i<strings.length;i++){
-	    	result[i]=Integer.valueOf(strings[i]);
-	    }
-		return result;
-	}
 	
      /**
       * front is 0, left is 1, back is 2, right is 3.
@@ -314,7 +280,6 @@ public class Model2 extends InternalTickCallback{
       * @return
       */
 	private int getDirectionFromAngle(double angle) {
-		// TODO Auto-generated method stub
 		 int result=0;
 		 if (angle<Math.PI/4 && angle>-Math.PI/4){result=0;}
 		 if (angle<Math.PI/4*3 && angle>Math.PI/4){result=3;}

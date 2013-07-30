@@ -28,18 +28,13 @@ import com.bulletphysics.BasicDemo;
 public class Model1 extends InternalTickCallback{	
 	private static int range=20;//how far away the termite could sense
 	private static float termiteHalfLen;
-	private static float termiteRadius;
 	private static int[] values=new int[4];
 	private static double angleRange=Math.PI/2;
 	private static float dishRadius=BasicDemo.getDishRadius();
-	private static float small_dis=5;
-	private static float large_dis=20;
-	//private int[][] distribution= readDistributionData();
 	public static int[] inputDistribution= new int[27];
 	private DynamicsWorld dynamicsWorld;
 	private IGL gl;
 	private float forcex;
-	private static int continuing=1;
 	
 	public Model1(DynamicsWorld dy, IGL gl) {
 		this.dynamicsWorld=dy;
@@ -77,7 +72,6 @@ public class Model1 extends InternalTickCallback{
 				    //position, angle correct 
 					float terLen=BasicDemo.getTermiteLen();
 					termiteHalfLen=(terLen/2);
-					termiteRadius=BasicDemo.getTermiteRad();
 					float head_x=(float) (center_x+termiteHalfLen*Math.cos(angle));
 					float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
 					float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
@@ -101,11 +95,9 @@ public class Model1 extends InternalTickCallback{
 			float angle=getAngle(orientation);
 			float terLen=BasicDemo.getTermiteLen();
 			termiteHalfLen=(terLen/2);
-			termiteRadius=BasicDemo.getTermiteRad();
+			float termiteRadius=BasicDemo.getTermiteRad();
 			float head_x=(float) (center_x+termiteHalfLen*Math.cos(angle));
 			float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
-			float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
-			float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
 			for (int dir=0;dir<4;dir++){
 				values[dir]=0;
 	             double point_x=head_x+range*Math.cos(angle-angleRange*dir);
@@ -157,66 +149,65 @@ public class Model1 extends InternalTickCallback{
 			drawLine(from,left_to,color);
 			drawLine(from,right_to,color);
 
-
-					int caseNum=values[0]+values[1]*3+values[3]*3*3;
+			int caseNum=values[0]+values[1]*3+values[3]*3*3;
 					inputDistribution[caseNum]+=1;
    
 					forcex=(float) (30-(count/1000.0)*4);
 					//add some randomness
-					Vector3f localforce=new Vector3f(forcex+(float) (Math.random()*10-5),(float) ((float) (Math.random()*10-5)),5);
-					// if ( values[3]!=0 && values[1]!=0 && values[0]!=0){localforce=new Vector3f(-5,0,5);/*go back*/ }
-					 if(increased){
-					     	Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, 4);
-							Transform tr=new Transform();
-							tr=body.getCenterOfMassTransform(tr);
-							float rotatedAngle=(float) ((float)5+count/1000*4);   //0.15-0.07, approximately 10 degree. Want:0.15,8 degree
-						//	rotatedAngle=rotatedAngle/BasicDemo.getConti();
-							//0.1:2.94255;0.125:2.89188, 0.25: 2.6516; 0.5:2.214; 0.75:1.854,1:1.57, 1.25:1.35; 1.5:1.176; 
-					     	//2:0.9272; 2.5:0.76;(45)5:0.394; 10:0.2; 20:0.1; 30:0.0666;40:0.05;50:0.04  
-							boolean rotate=false;
-					    	double random=Math.random()*100;
-					    	double cut=0;
-					    	double r=Math.random();
-							//first, check for front .inverse turn left
-					    	//TODO: get rid of getting stuck
-					       if (values[0]!=0 ){
-								if (values[3]==0 || values[1]==0 ){
-					                rotate=true;
-					                if (values[3]==0 ){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); }  //if nothing on the right, turn right:positive
-					                if (values[1]==0 ){ rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}		 //if nothing on the left, turn left
-									if (values[3]==0 && values[1]==0){
-										if (r>0.5){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}
-										else{rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}
-									}
-								}
-								if(values[3]!=0 && values[1]!=0){localforce=new Vector3f(-5,0,5);}
+			Vector3f localforce=new Vector3f(forcex+(float) (Math.random()*10-5),(float) ((float) (Math.random()*10-5)),5);
+			// if ( values[3]!=0 && values[1]!=0 && values[0]!=0){localforce=new Vector3f(-5,0,5);/*go back*/ }
+			 if(increased){
+			     	Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, 4);
+					Transform tr=new Transform();
+					tr=body.getCenterOfMassTransform(tr);
+					float rotatedAngle=(float) ((float)5+count/1000*4);   //0.15-0.07, approximately 10 degree. Want:0.15,8 degree
+				//	rotatedAngle=rotatedAngle/BasicDemo.getConti();
+					//0.1:2.94255;0.125:2.89188, 0.25: 2.6516; 0.5:2.214; 0.75:1.854,1:1.57, 1.25:1.35; 1.5:1.176; 
+			     	//2:0.9272; 2.5:0.76;(45)5:0.394; 10:0.2; 20:0.1; 30:0.0666;40:0.05;50:0.04  
+					boolean rotate=false;
+			    	double random=Math.random()*100;
+			    	double cut=0;
+			    	double r=Math.random();
+					//first, check for front .inverse turn left
+			    	//TODO: get rid of getting stuck
+			       if (values[0]!=0 ){
+						if (values[3]==0 || values[1]==0 ){
+			                rotate=true;
+			                if (values[3]==0 ){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); }  //if nothing on the right, turn right:positive
+			                if (values[1]==0 ){ rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}		 //if nothing on the left, turn left
+							if (values[3]==0 && values[1]==0){
+								if (r>0.5){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}
+								else{rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}
 							}
-					       
-					    	else{ //when the front is empty
-					    		 //right not empty, left empty, turn to left a bit
-								 if ( values[3]==2 && values[1]==0 ){ rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);rotation.inverse();  }	
-								 if ( values[3]==1 && values[1]==0 && random>cut){ rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);rotation.inverse();  }	
-								 //left not empty, right empty, turn to right a bit
-								 if ( values[1]==2 && values[3]==0 ){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}  //if nothing on the right, turn right:positive
-								 if ( values[1]==1 && values[3]==0 && random>cut){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}  //if nothing on the right, turn right:positive
-								 
-								 if ( values[3]!=0 && values[1]!=0){localforce=new Vector3f(-5,0,5);/*go back*/ }
-					    	
-				          }
-				         
-							if(rotate){
-									localforce=new Vector3f(0,0,5);
-									Quat4f newAngle=new Quat4f();
-									newAngle=body.getOrientation(newAngle);
-									rotation.mul(newAngle);
-								    tr.setRotation(rotation);
-							        body.setCenterOfMassTransform(tr);
-		
-						    }
-                   }
-					Vector3f globalForce=rotate(angle,localforce);
-					//drawLine(position,new Vector3f(position.x+globalForce.x,position.y+globalForce.y,position.z ),new Vector3f(1,1,0));
-					body.setLinearVelocity(globalForce);			       
+						}
+						if(values[3]!=0 && values[1]!=0){localforce=new Vector3f(-5,0,5);}
+					}
+			       
+			    	else{ //when the front is empty
+			    		 //right not empty, left empty, turn to left a bit
+						 if ( values[3]==2 && values[1]==0 ){ rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);rotation.inverse();  }	
+						 if ( values[3]==1 && values[1]==0 && random>cut){ rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);rotation.inverse();  }	
+						 //left not empty, right empty, turn to right a bit
+						 if ( values[1]==2 && values[3]==0 ){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}  //if nothing on the right, turn right:positive
+						 if ( values[1]==1 && values[3]==0 && random>cut){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}  //if nothing on the right, turn right:positive
+						 
+						 if ( values[3]!=0 && values[1]!=0){localforce=new Vector3f(-5,0,5);/*go back*/ }
+			    	
+		          }
+		         
+					if(rotate){
+							localforce=new Vector3f(0,0,5);
+							Quat4f newAngle=new Quat4f();
+							newAngle=body.getOrientation(newAngle);
+							rotation.mul(newAngle);
+						    tr.setRotation(rotation);
+					        body.setCenterOfMassTransform(tr);
+
+				    }
+           }
+			Vector3f globalForce=rotate(angle,localforce);
+			//drawLine(position,new Vector3f(position.x+globalForce.x,position.y+globalForce.y,position.z ),new Vector3f(1,1,0));
+			body.setLinearVelocity(globalForce);			       
            }
 		}
 	
@@ -229,21 +220,6 @@ public class Model1 extends InternalTickCallback{
 		gl.glEnd();
 	}
 
-	/**
-	 * The angle is in decimal, original  -->0; left:-pi, right:+pi
-	 * Want: <--0; left:-pi;right+pi
-	 * Examples: 0->pi,-pi/4->pi*3/4,pi/4->-pi*3/4
-	 * @param angle
-	 * @return
-	 */
-	private float changeAngle(float angle) {
-		//first, flip the sigh
-		angle=angle*(float)-1;
-		//complement it with pi
-		if (angle>=0){angle=(float) (Math.PI-angle);}
-		else{angle=(float) (-Math.PI-angle);}
-		return angle;
-	}
 
 	 
 	 /**
@@ -281,7 +257,6 @@ public class Model1 extends InternalTickCallback{
       * @return
       */
 	private int getDirectionFromAngle(double angle) {
-		// TODO Auto-generated method stub
 		 int result=0;
 		 if (angle<Math.PI/4 && angle>-Math.PI/4){result=0;}
 		 if (angle<Math.PI/4*3 && angle>Math.PI/4){result=3;}

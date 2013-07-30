@@ -67,8 +67,6 @@ import static com.bulletphysics.demos.opengl.IGL.*;
 /**
  */
 public class BasicDemo extends DemoApplication {
-	private static final String NUM_TEXTURES = null;
-	
 	private static Long start_time=System.currentTimeMillis();;
 	private ObjectArrayList<CollisionShape> collisionShapes = new ObjectArrayList<CollisionShape>();
 	private BroadphaseInterface broadphase;
@@ -83,7 +81,6 @@ public class BasicDemo extends DemoApplication {
 	private int dishHeight=30;
 	
 	private static BvhTriangleMeshShape soil;
-	private int soilHeight=0;
 	private static RigidBody soilBody;
 	private static ByteBuffer gVertices;
 	private static ByteBuffer gIndices;
@@ -102,16 +99,11 @@ public class BasicDemo extends DemoApplication {
     private static float time=0; 
     private static int count=1;
      
- 	//result(caseCount,3,caseNum) in matlab
- 	public static ArrayList<float[][]> trackingData=new ArrayList<float[][]>();
-//	private String caseDataPath="//mit//liyixin//Desktop//SUMMER//model//Case_";
-//	private String caseCountPath="//mit//liyixin//Desktop//SUMMER//model//Case_Count_Model_2.txt";
- 	private String caseDataPath="D:\\Yixin\\model\\Case_";
- 	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
+
 	private static int[] caseCount=new int[27];
 	private static ArrayList<Vector3f> force=new ArrayList<Vector3f>();
 	public static int counter=0;
- 	private static int continuingCount=0;
+	public static int getCounter() {return counter;}
 	
 	
 	public BasicDemo(IGL gl) {super(gl);}  
@@ -124,7 +116,6 @@ public class BasicDemo extends DemoApplication {
 	public static float getDishRadius(){return dishRadius;}
 	public static int getTermiteCount(){return numOfTermites;}
 	public static int[] getStates(){return states;}
-	public static ArrayList<float[][]>  getData(){return trackingData;}
 	public static int[] getCaseCount() {return caseCount;}
 	public static  ArrayList<Vector3f>  getForce() {return force;}
 	public static void setForce(Vector3f newforce, int termite) {
@@ -186,11 +177,6 @@ public class BasicDemo extends DemoApplication {
 	
 	public void initPhysics() throws IOException {
 		setCameraDistance(250f);
-		Object imageFilename;
-		//TODO: Set the texture of termites,floor, wall
-		//loadBMP(imageFilename);   // Load BMP image
-		//Object textureIDs;
-		//glGenTextures(1, textureIDs); // Generate 1 texture ID
 		
 		// collision configuration contains default setup for memory, collision setup
 		collisionConfiguration = new DefaultCollisionConfiguration();
@@ -333,24 +319,15 @@ public class BasicDemo extends DemoApplication {
 			float center_x=x;
 			float center_y=y;
 			float termiteHalfLen=(termiteLen/2);
-			float head_x=(float) (center_x+termiteHalfLen*Math.cos(angle));
-			float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
-			float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
-			float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
+			float head_x=(float) (center_x+termiteHalfLen*Math.cos(angl));
+			float head_y=(float) (center_y+termiteHalfLen*Math.sin(angl));
+			float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angl));
+			float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angl));
 			
 			ArrayList<Float> posList=new ArrayList<Float>();
 			posList.add(head_x);	posList.add(head_y);	posList.add(tail_x);	posList.add(tail_y);
 			positionList.add(posList);
 		}
-		
-	//	this.caseCount=readCaseCount(caseCountPath);
-		for (int i=0;i<27;i++){
-		//	float[][] data=readDistributionData(caseDataPath, i);
-		//	this.trackingData.add(data);
-			force.add(new Vector3f(0,0,0));
-		}
-		
-		
 		clientResetScene();
 	
 	}
@@ -396,56 +373,7 @@ public class BasicDemo extends DemoApplication {
 			}
 		}
 	}
-	
-	   /**
-	 * @return 
-	 * @throws IOException 
-	    * 
-	    */
-	public static float[][] readDistributionData(String filePath,int i) throws IOException {
-		int c=caseCount[i];
-			float[][] result= new float[c][3];
-			int j=1+i;
-			filePath+=j;
-			filePath+=".txt";
-			byte[] buffer = new byte[(int) new File(filePath).length()];
-			    BufferedInputStream f = null;
-			    try {f = new BufferedInputStream(new FileInputStream(filePath));
-			        f.read(buffer);
-			        if (f != null) try { f.close(); } catch (IOException ignored) { }} 
-		        catch (IOException ignored) { System.out.println("File not found or invalid path.");}			    
-			
-			   String[] lines=new String(buffer).split("\\s+");
-			   for  (int  count=0;count<c*3;count++){	             
-			    		  BigDecimal number = new BigDecimal(lines[count]);
-				    	  String numWithNoExponents = number.toPlainString();
-				    	  float num=Float.valueOf(numWithNoExponents);
-				    	  int mod=count/c;
-				    	  int div=count%c;		
-				    	 //System.out.println("mod: " +mod + "; div: "+div); 
-				          result[div][mod]= num;			         
-				          //System.out.println("result["+div +"]["+mod+"]="+result[div][mod]);				   
-			   }
-			return result;
-		}
-	
-	
-	
-	public static int[] readCaseCount(String filePath) {
-		int[] result=new int[27];
-		byte[] buffer = new byte[(int) new File(filePath).length()];
-	    BufferedInputStream f = null;
-	    try {f = new BufferedInputStream(new FileInputStream(filePath));
-	        f.read(buffer);
-	        if (f != null) try { f.close(); } catch (IOException ignored) { }} 
-        catch (IOException ignored) { System.out.println("File not found or invalid path.");}			    
-	    String[] strings=(new String(buffer)).split("\\s+");
-	    for (int i=0; i<strings.length;i++){
-	    	result[i]=Integer.valueOf(strings[i]);
-	    }
-		return result;
-	}
-	
+
 	
 	public static void main(String[] args) throws LWJGLException, IOException {
 		BasicDemo ccdDemo = new BasicDemo(LWJGL.getGL());
@@ -472,12 +400,4 @@ public class BasicDemo extends DemoApplication {
 			euler.z=(float) Math.asin(2.0 * (w*y - x*z));
 		    return euler.y;		  //we want yaw
 	  }
-	public static int getCounter() {
-		return counter;
-	}
-
-
-
-	
-	
 }
