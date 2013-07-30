@@ -90,8 +90,7 @@ public class Model1 extends InternalTickCallback{
 		}
 		
 	 
-	    //TODO: frame rate dependent?	
-	    for (int j=0; j<termites.size(); j++) {
+	   for (int j=0; j<termites.size(); j++) {
 	    	RigidBody body= termites.get(j);	
 			Vector3f position= new Vector3f(0,0,0);
 			//get the position and orientation of each termite                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
@@ -179,27 +178,22 @@ public class Model1 extends InternalTickCallback{
 							boolean rotate=false;
 					    	double random=Math.random()*100;
 					    	double cut=0;
-					    	double cut2=0;
 					    	double r=Math.random();
 							//first, check for front .inverse turn left
-					    	//TODO: What does cut2 means
+					    	//TODO: get rid of getting stuck
 					       if (values[0]!=0 ){
 								if (values[3]==0 || values[1]==0 ){
 					                rotate=true;
 					                if (values[3]==0 ){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); }  //if nothing on the right, turn right:positive
 					                if (values[1]==0 ){ rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}		 //if nothing on the left, turn left
 									if (values[3]==0 && values[1]==0){
-										if(random>cut2){
 										if (r>0.5){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}
 										else{rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}
-										}
 									}
 								}
-								if(values[3]!=0 && values[1]!=0){//go back
-									localforce=new Vector3f(-5,0,5);
-									}
-								
+								if(values[3]!=0 && values[1]!=0){localforce=new Vector3f(-5,0,5);}
 							}
+					       
 					    	else{ //when the front is empty
 					    		 //right not empty, left empty, turn to left a bit
 								 if ( values[3]==2 && values[1]==0 ){ rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);rotation.inverse();  }	

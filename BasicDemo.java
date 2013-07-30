@@ -137,9 +137,7 @@ public class BasicDemo extends DemoApplication {
 		final long diff=endTime-start_time;
 		return diff;
 	}
-	public static int getConti(){return continuingCount;}
-	public static void setConti(int newCounti){continuingCount=newCounti;}
-	public static void incrementCounti(){continuingCount+=1;}
+	
 	@Override
 	public void clientMoveAndDisplay() {
 		gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -149,10 +147,8 @@ public class BasicDemo extends DemoApplication {
 			//TODO: set the time to be correct
 			if(counter==0){	start_time = System.currentTimeMillis();}
 			dynamicsWorld.stepSimulation((float)1/60); //step the world once 1/5 sec.
-			
             InternalTickCallback cb=new Model1(dynamicsWorld, gl);//MyInternalTickCallback ();
-			Object worldUserInfo=0;
-			
+			Object worldUserInfo=0;	
 			dynamicsWorld.setInternalTickCallback(cb, worldUserInfo);
 			dynamicsWorld.debugDrawWorld();
 		}

@@ -141,14 +141,12 @@ public class BuildingDemo extends DemoApplication {
 	//also need to remember the height of the soil
     public static void setHeight(int pointNum, Float newVal){
     	Float old=soilMeshHeight.get(pointNum);
-    	old=newVal;}
-
+    	old=newVal;
+    	}
 	static ObjectArrayList<CollisionShape> getColliShape(){return collisionShapes;}
-	
 	public static void setgVertices(ByteBuffer newVer){gVertices=newVer;}
 	
 	public static int getCount(){return count;}
-	
 	public static void incrementCount() {count++;}
 	public static long getTime(){
 		final long endTime = System.currentTimeMillis();
@@ -164,28 +162,25 @@ public class BuildingDemo extends DemoApplication {
 		//float ms = getDeltaTimeMicroseconds();
 		// step the simulation
 		if (dynamicsWorld != null) {
-			//TODO: set the time to be correct
-			dynamicsWorld.stepSimulation((float)time,1); //step the world once 1/5 sec.
-		
+			if(counter==0){	start_time = System.currentTimeMillis();}
+			dynamicsWorld.stepSimulation((float)1/60); //step the world once 1/5 sec.
             InternalTickCallback cb=new Model3(dynamicsWorld, gl);//MyInternalTickCallback ();
 			Object worldUserInfo=0;
 			
 			dynamicsWorld.setInternalTickCallback(cb, worldUserInfo);
 			dynamicsWorld.debugDrawWorld();
 		}
-		time+=0.2;//getDeltaTimeMicroseconds()/1000000;
 		counter++;
 		renderme();
-		if(count==1000)	{
-        	toTxtFile(positionList,1);	toTxtFile(positionList,2);	toTxtFile(positionList,3);	toTxtFile(positionList,4);
+		if(count==1000)	{		
+        	toTxtFile(positionList,1);	//toTxtFile(positionList,2);	toTxtFile(positionList,3);	toTxtFile(positionList,4);
+		    String start="input=[";
 		    for (int i=0;i<27;i++){ 
-				int j=i+1;
-				if( i==0){System.out.println("start");}
-				System.out.println(Model1.getInputDis()[i]+","); 	    
+				start+=(Model1.getInputDis()[i]+","); 	    
 		    }    
-		
-   }
-		
+		    start+="];";
+		 System.out.println(start);
+         }
 		//glFlush();
 		//glutSwapBuffers();
 	}
@@ -207,18 +202,11 @@ public class BuildingDemo extends DemoApplication {
 	
 	public void initPhysics() throws IOException {
 		setCameraDistance(250f);
-		Object imageFilename;
-		//TODO: Set the texture of termites,floor, wall
-		//loadBMP(imageFilename);   // Load BMP image
-		//Object textureIDs;
-		//glGenTextures(1, textureIDs); // Generate 1 texture ID
-		
 		// collision configuration contains default setup for memory, collision setup
 		collisionConfiguration = new DefaultCollisionConfiguration();
 		// use the default collision dispatcher. For parallel processing you can use a diffent dispatcher (see Extras/BulletMultiThreaded)
 		dispatcher = new CollisionDispatcher(collisionConfiguration);
 		broadphase = new DbvtBroadphase();
-		// the default constraint solver. For parallel processing you can use a different solver (see Extras/BulletMultiThreaded)
 		SequentialImpulseConstraintSolver sol = new SequentialImpulseConstraintSolver();
 		solver = sol;		
 		// TODO: needed for SimpleDynamicsWorld
@@ -368,10 +356,7 @@ public class BuildingDemo extends DemoApplication {
 
 		}
 		
-	//	this.caseCount=readCaseCount(caseCountPath);
 		for (int i=0;i<=26;i++){
-			//float[][] data=readDistributionData(caseDataPath, i);
-			//this.trackingData.add(data);
 			force.add(new Vector3f(0,0,0));
 			int[] s=new int[4];
 			for (int state=0;state<=3;state++){
@@ -438,39 +423,6 @@ public class BuildingDemo extends DemoApplication {
 		}
 	}
 	
-	   /**
-	 * @return 
-	 * @throws IOException 
-	    * 
-	    */
-	public static float[][] readDistributionData(String filePath,int i) throws IOException {
-		int c=caseCount[i];
-			float[][] result= new float[c][3];
-			int j=1+i;
-			filePath+=j;
-			filePath+=".txt";
-			byte[] buffer = new byte[(int) new File(filePath).length()];
-			    BufferedInputStream f = null;
-			    try {f = new BufferedInputStream(new FileInputStream(filePath));
-			        f.read(buffer);
-			        if (f != null) try { f.close(); } catch (IOException ignored) { }} 
-		        catch (IOException ignored) { System.out.println("File not found or invalid path.");}			    
-			
-			   String[] lines=new String(buffer).split("\\s+");
-			   for  (int  count=0;count<c*3;count++){	             
-			    		  BigDecimal number = new BigDecimal(lines[count]);
-				    	  String numWithNoExponents = number.toPlainString();
-				    	  float num=Float.valueOf(numWithNoExponents);
-				    	  int mod=count/c;
-				    	  int div=count%c;		
-				    	 //System.out.println("mod: " +mod + "; div: "+div); 
-				          result[div][mod]= num;			         
-				          //System.out.println("result["+div +"]["+mod+"]="+result[div][mod]);				   
-			   }
-			return result;
-		}
-	
-	
 	
 	
 	public static void main(String[] args) throws LWJGLException, IOException {
@@ -480,9 +432,4 @@ public class BuildingDemo extends DemoApplication {
 		LWJGL.main(args, 800, 600, "Termite", ccdDemo);
 	}
 
-
-
-
-	
-	
 }
