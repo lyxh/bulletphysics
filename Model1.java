@@ -56,12 +56,10 @@ public class Model1 extends InternalTickCallback{
 		//problem with the beginning
 		int count=BasicDemo.getCount();
 		Long diff=(long)60;
-		BasicDemo.incrementCounti();
 		long time=BasicDemo.getTime();
 		//System.out.println("Time: "+time+"; Count:"+ count);
 		if(time<count*200+diff && time>count*200-diff){
 			BasicDemo.incrementCount();
-			BasicDemo.setConti(0);
 			increased=true;
 		  	System.out.println("Increment count to "+ count + " at time "+ time/1000);
 		  	//for every termite, record the position
@@ -247,59 +245,6 @@ public class Model1 extends InternalTickCallback{
 		return angle;
 	}
 
-	/**
-	 * 
-	 * @param data
-	 * @return
-	 */
-	 private Vector3f getForceFromDistribution(int[] caseData) {
-		 //first, generate the angle turned
-		float angle = 0;
-		float angleCaseNum=caseData[0]+caseData[1]+caseData[2];
-		float random=(float) (Math.random());
-		if (random<caseData[0]/angleCaseNum){angle=0;}
-		if (random>=caseData[0]/angleCaseNum && random<(caseData[0]+caseData[0])/angleCaseNum){angle=90;} //turn left
-		else{angle=-90;} //turn right
-		
-		//generate x and y distances
-		float x=0;
-		float xCaseNum=caseData[3]+caseData[4]+caseData[5]+caseData[6]+caseData[7];
-		float random_x=(float) (Math.random());
-		float one=caseData[3]/xCaseNum;
-		float two=(caseData[3]+caseData[4])/xCaseNum;
-		float three=(caseData[3]+caseData[4]+caseData[5])/xCaseNum;
-		float four=(caseData[3]+caseData[4]+caseData[5]+caseData[6])/xCaseNum;
-		//System.out.println(one+" "+two+" "+three+" "+four);
-		if (random_x<one){x=0;}
-		else if (random_x>=one && random_x<two){x=small_dis;} 
-		else if (random_x>=two && random_x<three){x=large_dis;} 
-		else if (random_x>=three && random_x<four){x=-small_dis;} 
-		else if (random_x>=four){x=-large_dis;} 
-		
-		
-		float y=0;
-		float yCaseNum=caseData[8]+caseData[9]+caseData[10]+caseData[11]+caseData[12];
-		float random_y=(float) (Math.random());
-		float one_y=caseData[8]/yCaseNum;
-		float two_y=(caseData[8]+caseData[9])/yCaseNum;
-		float three_y=(caseData[8]+caseData[9]+caseData[10])/yCaseNum;
-		float four_y=(caseData[8]+caseData[9]+caseData[10]+caseData[11])/yCaseNum;
-		if (random_y<one_y){y=0;}
-		else if (random_y>=one_y && random_y<two_y){y=small_dis;} 
-		else if (random_y>=two_y && random_y<three_y){y=large_dis;} 
-		else if (random_y>=three_y && random_y<four_y){y=-1*small_dis;} 
-		else if (random_y>=four_y){y=-1*large_dis;} 
-
-		// Now, without rotation.
-		Float[] newxy=rotate(angle,x,y);
-		//from angle,x,y,generate a force
-		//Vector3f force=new Vector3f((float)newxy[0],(float)newxy[1],(float)0);
-		//how to rotate the rigidbody?
-		Vector3f force=new Vector3f(x,y,0);
-		return force;
-	}
-
-	 
 	 
 	 /**
 	  * Rotate a vector(x,y) by some degrees angle
@@ -328,31 +273,6 @@ public class Model1 extends InternalTickCallback{
 	      return new Vector3f(x,y,v.z);
 	   }
 	 
-   /**
- * @return 
-    * 
-    */
-	private int[][] readDistributionData() {
-		int[][] result= new int[13][27];
-		 String filePath="D:\\Yixin\\trajectory analysis\\PherDish11Block1.txt";
-		 byte[] buffer = new byte[(int) new File(filePath).length()];
-		    BufferedInputStream f = null;
-		    try {f = new BufferedInputStream(new FileInputStream(filePath));
-		        f.read(buffer);
-		        if (f != null) try { f.close(); } catch (IOException ignored) { }} 
-	        catch (IOException ignored) { System.out.println("File not found or invalid path.");}			    
-		    String[] strings=(new String(buffer)).split("\\s+");
-		    for (int i=0; i<strings.length;i++){
-		    	  Integer num=Integer.valueOf(strings[i]);
-		    	  int mod=i%13;
-		    	  int div=i/13;
-		          result[mod][div]=(int) num;
-		         // System.out.println("result["+mod +"]["+div+"]="+result[mod][div]);
-		   }
-		    
-		return result;
-	}
-
 	
 	
      /**

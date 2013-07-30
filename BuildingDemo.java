@@ -104,7 +104,7 @@ public class BuildingDemo extends DemoApplication {
 	//private String caseCountPath="//mit//liyixin//Desktop//SUMMER//model//Case_Count_Model_2.txt";
  	//private String caseDataPath="D:\\Yixin\\model\\Case_";
  	//private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
- 	private static int count=4000;
+ 	private static int count=0;
  	private static int[] caseCount=new int[27];
 	private static ArrayList<Vector3f> force=new ArrayList<Vector3f>();
 	private static int counter=0;
@@ -176,7 +176,7 @@ public class BuildingDemo extends DemoApplication {
         	toTxtFile(positionList,1);	//toTxtFile(positionList,2);	toTxtFile(positionList,3);	toTxtFile(positionList,4);
 		    String start="input=[";
 		    for (int i=0;i<27;i++){ 
-				start+=(Model1.getInputDis()[i]+","); 	    
+				start+=(Model3.getInputDis()[i]+","); 	    
 		    }    
 		    start+="];";
 		 System.out.println(start);

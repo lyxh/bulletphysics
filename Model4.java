@@ -27,7 +27,7 @@ import com.bulletphysics.util.ObjectArrayList;
  * @author ssr
  *
  */
-public class Model3 extends InternalTickCallback{	
+public class Model4 extends InternalTickCallback{	
 	private static int range=20;//how far away the termite could sense
 	private static float termiteHalfLen;
 	private static int[] values=new int[4];
@@ -52,7 +52,7 @@ public class Model3 extends InternalTickCallback{
    public static  int[] returnInputDis(){return inputDistribution;}
 	
 	
-	public Model3(DynamicsWorld dy, IGL gl) {
+	public Model4(DynamicsWorld dy, IGL gl) {
 		this.dynamicsWorld=dy;
 		this.gl=gl;
 		this.trackingData= BuildingDemo.getData();
