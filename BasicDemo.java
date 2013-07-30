@@ -111,7 +111,9 @@ public class BasicDemo extends DemoApplication {
 	private static int[] caseCount=new int[27];
 	private static ArrayList<Vector3f> force=new ArrayList<Vector3f>();
 	public static int counter=0;
- 	
+ 	private static int continuingCount=0;
+	
+	
 	public BasicDemo(IGL gl) {super(gl);}  
 	public static ObjectArrayList<RigidBody> getTermites(){	return termites;}	
 	public static ArrayList<ArrayList<Float>> getPositionList(){return positionList;}	
@@ -124,20 +126,20 @@ public class BasicDemo extends DemoApplication {
 	public static int[] getStates(){return states;}
 	public static ArrayList<float[][]>  getData(){return trackingData;}
 	public static int[] getCaseCount() {return caseCount;}
-
 	public static  ArrayList<Vector3f>  getForce() {return force;}
 	public static void setForce(Vector3f newforce, int termite) {
 		force.set(termite,newforce);
 	}
 	public static int getCount(){return count;}
-	
 	public static void incrementCount() {count++;}
 	public static long getTime(){
 		final long endTime = System.currentTimeMillis();
 		final long diff=endTime-start_time;
 		return diff;
 	}
-	
+	public static int getConti(){return continuingCount;}
+	public static void setConti(int newCounti){continuingCount=newCounti;}
+	public static void incrementCounti(){continuingCount+=1;}
 	@Override
 	public void clientMoveAndDisplay() {
 		gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -146,7 +148,7 @@ public class BasicDemo extends DemoApplication {
 		if (dynamicsWorld != null) {
 			//TODO: set the time to be correct
 			if(counter==0){	start_time = System.currentTimeMillis();}
-			dynamicsWorld.stepSimulation((float)time); //step the world once 1/5 sec.
+			dynamicsWorld.stepSimulation((float)1/60); //step the world once 1/5 sec.
 			
             InternalTickCallback cb=new Model1(dynamicsWorld, gl);//MyInternalTickCallback ();
 			Object worldUserInfo=0;
@@ -154,18 +156,18 @@ public class BasicDemo extends DemoApplication {
 			dynamicsWorld.setInternalTickCallback(cb, worldUserInfo);
 			dynamicsWorld.debugDrawWorld();
 		}
-		time+=1;//getDeltaTimeMicroseconds()/1000000;
+		time+=1;
 		counter++;
 		renderme();
 		
-		if(count==4000)	{
-            	toTxtFile(positionList,1);	toTxtFile(positionList,2);	toTxtFile(positionList,3);	toTxtFile(positionList,4);
+		if(count==1000)	{		
+            	toTxtFile(positionList,1);	//toTxtFile(positionList,2);	toTxtFile(positionList,3);	toTxtFile(positionList,4);
+			    String start="input=[";
 			    for (int i=0;i<27;i++){ 
-					int j=i+1;
-					if( i==0){System.out.println("start");}
-					System.out.println(Model1.getInputDis()[i]+","); 	    
+					start+=(Model1.getInputDis()[i]+","); 	    
 			    }    
-			
+			    start+="];";
+			 System.out.println(start);
 	   }
 		//glFlush();
 		//glutSwapBuffers();

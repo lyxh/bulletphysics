@@ -90,7 +90,7 @@ public class BasicDemo2 extends DemoApplication {
 	private static int NUM_VERTS_X = (1+dishRadius/10)*2;
 	private static int NUM_VERTS_Y = NUM_VERTS_X ;
 	private static int totalVerts = NUM_VERTS_X*NUM_VERTS_Y;
-	
+	private static String distribution="";
 
 	private static ObjectArrayList<RigidBody> termites= new ObjectArrayList<RigidBody>();
 	private static int numOfTermites=19;
@@ -104,14 +104,18 @@ public class BasicDemo2 extends DemoApplication {
      
  	//result(caseCount,3,caseNum) in matlab
  	public static ArrayList<float[][]> trackingData=new ArrayList<float[][]>();
-	private String caseDataPath="D:\\Yixin\\model\\Case_";
-	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
-	private String caseDataPath2="D:\\Yixin\\model\\SecondCase_";
-	private String caseCountPath2="D:\\Yixin\\model\\SecondCase_Count_Model_2.txt";
-	private String caseDataPath3="D:\\Yixin\\model\\ThirdCase_";
-	private String caseCountPath3="D:\\Yixin\\model\\ThirdCase_Count_Model_2.txt";
-	private String caseDataPath4="D:\\Yixin\\model\\ForthCase_";
-	private String caseCountPath4="D:\\Yixin\\model\\ForthCase_Count_Model_2.txt";
+	private String caseDataPath="D:\\Yixin\\model\\tracking\\Case_";
+	private String caseCountPath="D:\\Yixin\\model\\tracking\\Case_Count_Model_2.txt";
+	private String caseDataPath2="D:\\Yixin\\model\\tracking\\SecondCase_";
+	private String caseCountPath2="D:\\Yixin\\model\\tracking\\SecondCase_Count_Model_2.txt";
+	private String caseDataPath3="D:\\Yixin\\model\\tracking\\ThirdCase_";
+	private String caseCountPath3="D:\\Yixin\\model\\tracking\\ThirdCase_Count_Model_2.txt";
+	private String caseDataPath4="D:\\Yixin\\model\\tracking\\ForthCase_";
+	private String caseCountPath4="D:\\Yixin\\model\\tracking\\ForthCase_Count_Model_2.txt";
+	private String caseDataPath5="D:\\Yixin\\model\\tracking\\FiveCase_";
+	private String caseCountPath5="D:\\Yixin\\model\\tracking\\FiveCase_Count_Model_2.txt";
+	private String caseDataPath6="D:\\Yixin\\model\\tracking\\SixCase_";
+	private String caseCountPath6="D:\\Yixin\\model\\tracking\\SixCase_Count_Model_2.txt";
 	private static int[] caseCount=new int[27];
 	private static ArrayList<Vector3f> force=new ArrayList<Vector3f>();
 	public static int counter=0;
@@ -149,7 +153,7 @@ public class BasicDemo2 extends DemoApplication {
 		if (dynamicsWorld != null) {
 			//TODO: set the time to be correct
 			if(counter==0){start_time = System.currentTimeMillis();	}
-			dynamicsWorld.stepSimulation((float)time); //step the world once 1/5 sec.
+			dynamicsWorld.stepSimulation((float)1/60); //step the world once 1/5 sec.
             InternalTickCallback cb=new Model2(dynamicsWorld, gl);//MyInternalTickCallback ();
 			Object worldUserInfo=0;
 			
@@ -159,63 +163,84 @@ public class BasicDemo2 extends DemoApplication {
 		time+=1;//getDeltaTimeMicroseconds()/1000000;
 		counter++;
 		renderme();
-		if(count==1000){
+		boolean one=false;
+		if(count==1000  && !one){
 			  synchronized (this) {
-					this.caseCount=readCaseCount(caseCountPath2);	
-					this.trackingData.clear();
+					caseCount=readCaseCount(caseCountPath2);	
+					trackingData.clear();distribution+="   Block1:";
 					for (int i=0;i<27;i++){
-						int len=this.caseCount[i];
+						int len=caseCount[i];
 						float[][] data=new float[len][3];
-						try {
-							data = readDistributionData(caseDataPath2, i);
-						} catch (IOException e) {e.printStackTrace();}		
-				        this.trackingData.add(data);
-						//System.out.println("Length of " + i+ " case:" + this.trackingData.get(i).length);
-					     }
+						try {data = readDistributionData(caseDataPath2, i);} 
+						catch (IOException e) {e.printStackTrace();}		
+				        trackingData.add(data);
+				        distribution+=(Integer.toString(Model2.getInputDis()[i]))+",";
+						}
+					  one=true;
 					  }
 		}
 		
-		if(count==2000){
+		boolean two=false;
+		if(count==2000  && !two){
 			 synchronized (this) {
-					this.caseCount=readCaseCount(caseCountPath3);	
-					this.trackingData.clear();
+					caseCount=readCaseCount(caseCountPath3);	
+					trackingData.clear(); 
+					distribution+="   Block2:";
 					for (int i=0;i<27;i++){
-						int len=this.caseCount[i];
+						int len=caseCount[i];
 						float[][] data=new float[len][3];
-						try {
-							data = readDistributionData(caseDataPath3, i);
+						try {data = readDistributionData(caseDataPath3, i);
 						} catch (IOException e) {e.printStackTrace();}		
-				        this.trackingData.add(data);
-						//System.out.println("Length of " + i+ " case:" + this.trackingData.get(i).length);
-					     }
-					  }
+						trackingData.add(data);
+						distribution+=(Integer.toString(Model2.getInputDis()[i]))+",";
+					}
+					 two=true;
+			}
 		}
 		
-		if(count==3000){
+		boolean three=false;
+		if(count==3000 && !three){
 			 synchronized (this) {
-					this.caseCount=readCaseCount(caseCountPath4);	
-					this.trackingData.clear();
+					caseCount=readCaseCount(caseCountPath4);	
+					trackingData.clear();
+					distribution+="  Block3:";
 					for (int i=0;i<27;i++){
-						int len=this.caseCount[i];
+						int len=caseCount[i];
 						float[][] data=new float[len][3];
 						try {
 							data = readDistributionData(caseDataPath4, i);
 						} catch (IOException e) {e.printStackTrace();}		
-				        this.trackingData.add(data);
-						//System.out.println("Length of " + i+ " case:" + this.trackingData.get(i).length);
-					     }
+						 trackingData.add(data);
+						 distribution+=(Integer.toString(Model2.getInputDis()[i]))+","; }
+				     three=true;
 					  }
 		}
+		boolean four=false;
+		if(count==4000  && !four){
+			 synchronized (this) {
+				 toTxtFile(positionList,1);	toTxtFile(positionList,2);	toTxtFile(positionList,3);	toTxtFile(positionList,4);
+					 distribution+="  Block4:"; 
+					for (int i=0;i<27;i++){
+				       distribution+=(Integer.toString(Model2.getInputDis()[i]))+","; 
+					}
+					four=true;
+					 System.out.println(distribution); 
+					  }
+		}
+		/*
+		 * boolean five=false;
 		
-		if(count==4000)	{
-            	toTxtFile(positionList,1);	toTxtFile(positionList,2);	toTxtFile(positionList,3);	toTxtFile(positionList,4);
-			    for (int i=0;i<27;i++){ 
-					int j=i+1;
-					if( i==0){System.out.println("start");}
-					System.out.println(Model2.getInputDis()[i]+","); 	    
-			    }    
-			
+		if(count==5000  && !five)	{
+            	toTxtFile(positionList,1);	toTxtFile(positionList,2);	toTxtFile(positionList,3);	toTxtFile(positionList,4);toTxtFile(positionList,5);
+            	distribution+="block 5:"
+            	for (int i=0;i<27;i++){
+				   distribution+=(Integer.toString(Model2.getInputDis()[i]));distribution+=""; 
+				 }
+            	five=true;
+			    System.out.println(distribution); 
+			    
 	   }
+		*/
 		//glFlush();
 		//glutSwapBuffers();
 	}

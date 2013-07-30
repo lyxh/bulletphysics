@@ -94,10 +94,9 @@ public class BuildingDemo extends DemoApplication {
 	private static float termiteRadius=5;
     private static float termiteLen=26;
     private float termiteHeight=-6;
-    private static ArrayList<ArrayList<Vector3f>> positionList= new ArrayList<ArrayList<Vector3f>>();
-    private static ArrayList<ArrayList<Quat4f>> orientationList= new ArrayList<ArrayList<Quat4f>>();
+    private static ArrayList<ArrayList<Float>> positionList= new ArrayList<ArrayList<Float>>();
     private static float time=0; 
-    
+	private static Long start_time;
  	private static int totalDataNum=11989;
  	//result(caseCount,3,caseNum) in matlab
  	public static ArrayList<float[][]> trackingData=new ArrayList<float[][]>();
@@ -105,15 +104,17 @@ public class BuildingDemo extends DemoApplication {
 	//private String caseCountPath="//mit//liyixin//Desktop//SUMMER//model//Case_Count_Model_2.txt";
  	private String caseDataPath="D:\\Yixin\\model\\Case_";
  	private String caseCountPath="D:\\Yixin\\model\\Case_Count_Model_2.txt";
- 	
+ 	private static int count=4000;
  	private static int[] caseCount=new int[27];
 	private static ArrayList<Vector3f> force=new ArrayList<Vector3f>();
 	private static int counter=0;
- 	
+	public static ArrayList<Float> soilMeshHeight=new ArrayList<Float>();
+	
+	
 	public BuildingDemo(IGL gl) {super(gl);}  
 	public static ObjectArrayList<RigidBody> getTermites(){	return termites;}	
-	public static ArrayList<ArrayList<Vector3f>> getPositionList(){return positionList;}	
-	public static ArrayList<ArrayList<Quat4f>> getOrientationList(){return orientationList; }	
+	public static ArrayList<ArrayList<Float>> getPositionList(){return positionList;}	
+
 	public static BvhTriangleMeshShape getSoilMesh(){	return soil;}
 	public static void setSoilMesh(BvhTriangleMeshShape newSoil){	soil=newSoil;}
 	
@@ -137,10 +138,26 @@ public class BuildingDemo extends DemoApplication {
 	public static void clearTimeInState(int termite){
 		for (int state=0; state<=3;state++){timeSpentInOneState.get(termite)[state]=0;}
 	}
+	//also need to remember the height of the soil
+    public static void setHeight(int pointNum, Float newVal){
+    	Float old=soilMeshHeight.get(pointNum);
+    	old=newVal;}
 
 	static ObjectArrayList<CollisionShape> getColliShape(){return collisionShapes;}
 	
 	public static void setgVertices(ByteBuffer newVer){gVertices=newVer;}
+	
+	public static int getCount(){return count;}
+	
+	public static void incrementCount() {count++;}
+	public static long getTime(){
+		final long endTime = System.currentTimeMillis();
+		final long diff=endTime-start_time;
+		return diff;
+	}
+	
+	
+	
 	@Override
 	public void clientMoveAndDisplay() {
 		gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -159,14 +176,15 @@ public class BuildingDemo extends DemoApplication {
 		time+=0.2;//getDeltaTimeMicroseconds()/1000000;
 		counter++;
 		renderme();
-		
-		if (time>=1000){
-			for (int i=0;i<27;i++){ 
+		if(count==1000)	{
+        	toTxtFile(positionList,1);	toTxtFile(positionList,2);	toTxtFile(positionList,3);	toTxtFile(positionList,4);
+		    for (int i=0;i<27;i++){ 
 				int j=i+1;
 				if( i==0){System.out.println("start");}
-				System.out.println(Model3.getInputDis()[i]+",");
-				}
-		}
+				System.out.println(Model1.getInputDis()[i]+","); 	    
+		    }    
+		
+   }
 		
 		//glFlush();
 		//glutSwapBuffers();
@@ -267,6 +285,7 @@ public class BuildingDemo extends DemoApplication {
 				gVertices.putFloat(i*10-d-5);
 				gVertices.putFloat(j*10-d-5);
 				gVertices.putFloat(0);
+				soilMeshHeight.add((float) 0);
 			}
 		}
 		
@@ -296,6 +315,7 @@ public class BuildingDemo extends DemoApplication {
 		soilBody = new RigidBody(SoilrbInfo);
 
 		dynamicsWorld.addRigidBody(soilBody);		
+		
 
 		
 			
@@ -312,43 +332,46 @@ public class BuildingDemo extends DemoApplication {
 			
 			//initialize the termite location at random. Add the position to positionList
 			double radius = (Math.random()*(dishRadius-20)); //Math.random() returns a double value between 0.0 and 1.0 between 0 and the radius of the circle
-			float angle = (float) (Math.random()*2*Math.PI); // between 0 and 360 (degrees)  
-			float x =(float) (radius*Math.cos(angle));
-			float y = (float) (radius*Math.sin(angle)); 
+			float angle1 = (float) (Math.random()*2*Math.PI); // between 0 and 360 (degrees)  
+			float x =(float) (radius*Math.cos(angle1));
+			float y = (float) (radius*Math.sin(angle1)); 
 			capTransform.origin.set(x,y,termiteHeight);
             
 			//set the beginning orientation to a random orientation
 			float roll = 0, pitch = 0, yaw =(float) (Math.random()*2*Math.PI);
 			float randomAngle=(float) (Math.random()*2*Math.PI);
 			capTransform.basis.rotZ(randomAngle);
-			
-			ArrayList<Vector3f> individualList=new ArrayList<Vector3f>();
-			individualList.add(new Vector3f(x,y,termiteHeight));
-			positionList.add(individualList);
 	      
 			DefaultMotionState myMotionState3 = new DefaultMotionState(capTransform);
 			RigidBodyConstructionInfo rbInfo3 = new RigidBodyConstructionInfo(mass3, myMotionState3, terShape, localInertia3);
 			RigidBody body3 = new RigidBody(rbInfo3);
-			body3.setSleepingThresholds((float)0.0, (float)0.0);
 			//body3.setAngularFactor(new Vector3f(0,0, 0.0)); could not rotate around itself!
           // body3.setFriction(0);
 			states[i1]=0;
 
 			termites.add(body3);
 			dynamicsWorld.addRigidBody(body3);
-			
-			// Add initial orientation to the orientationList
 			Quat4f ori=new Quat4f();
 			ori=body3.getOrientation(ori);
-			ArrayList<Quat4f> individualOriList=new ArrayList<Quat4f>();
-			individualOriList.add(ori);
-			orientationList.add(individualOriList);
+			float angle=BasicDemo2.getAngle(ori);
+			float center_x=x;
+			float center_y=y;
+			float termiteHalfLen=(termiteLen/2);
+			float head_x=(float) (center_x+termiteHalfLen*Math.cos(angle));
+			float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
+			float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
+			float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
+			
+			ArrayList<Float> posList=new ArrayList<Float>();
+			posList.add(head_x);	posList.add(head_y);	posList.add(tail_x);	posList.add(tail_y);
+			positionList.add(posList);
+
 		}
 		
-		this.caseCount=readCaseCount(caseCountPath);
+	//	this.caseCount=readCaseCount(caseCountPath);
 		for (int i=0;i<=26;i++){
-			float[][] data=readDistributionData(caseDataPath, i);
-			this.trackingData.add(data);
+			//float[][] data=readDistributionData(caseDataPath, i);
+			//this.trackingData.add(data);
 			force.add(new Vector3f(0,0,0));
 			int[] s=new int[4];
 			for (int state=0;state<=3;state++){
@@ -356,8 +379,6 @@ public class BuildingDemo extends DemoApplication {
 			}
 			timeSpentInOneState.add(s);
 		}
-
-		
 		clientResetScene();
 	
 	}
@@ -380,8 +401,41 @@ public class BuildingDemo extends DemoApplication {
 	 * Output the center position and orientation of each termite to a txt file. (positionList and orientationList)
 	 * The head and tail positions could be calculated from the position and orientation.
 	 */
-	public void toTxtFile(){
-		
+	public void toTxtFile(ArrayList<ArrayList<Float>> posList, int block_num){
+		for(int i=0;i<posList.size();i++){
+			ArrayList<Float> dataForOneTermite=posList.get(i);
+			String content = "";
+			for(int j=(block_num-1)*4000;j<block_num*4000;j++){
+				Float point=dataForOneTermite.get(j);
+				content=content+point.toString()+ " ";
+			}
+			FileOutputStream fop = null;
+			File file;
+			String filename = "D:\\Yixin\\model\\2\\Model2Block"+block_num+"Term"+(i+1)+".txt";
+	 
+			try {
+				file = new File(filename);
+				fop = new FileOutputStream(file);
+	             if (!file.exists()) {file.createNewFile();}
+	             // get the content in bytes
+				byte[] contentInBytes = content.getBytes();
+	 
+				fop.write(contentInBytes);
+				fop.flush();
+				fop.close();
+	 
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				try {
+					if (fop != null) {
+						fop.close();
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 	
 	   /**
@@ -418,28 +472,12 @@ public class BuildingDemo extends DemoApplication {
 	
 	
 	
-	public static int[] readCaseCount(String filePath) {
-		int[] result=new int[27];
-		byte[] buffer = new byte[(int) new File(filePath).length()];
-	    BufferedInputStream f = null;
-	    try {f = new BufferedInputStream(new FileInputStream(filePath));
-	        f.read(buffer);
-	        if (f != null) try { f.close(); } catch (IOException ignored) { }} 
-        catch (IOException ignored) { System.out.println("File not found or invalid path.");}			    
-	    String[] strings=(new String(buffer)).split("\\s+");
-	    for (int i=0; i<strings.length;i++){
-	    	result[i]=Integer.valueOf(strings[i]);
-	    }
-		return result;
-	}
-	
 	
 	public static void main(String[] args) throws LWJGLException, IOException {
 		BuildingDemo ccdDemo = new BuildingDemo(LWJGL.getGL());
 		ccdDemo.initPhysics();
 		ccdDemo.getDynamicsWorld().setDebugDrawer(new GLDebugDrawer(LWJGL.getGL()));
 		LWJGL.main(args, 800, 600, "Termite", ccdDemo);
-		ccdDemo.toTxtFile();
 	}
 
 

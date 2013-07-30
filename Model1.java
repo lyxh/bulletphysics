@@ -47,21 +47,22 @@ public class Model1 extends InternalTickCallback{
 	}
 
 	public static int[] getInputDis(){return inputDistribution;}
-
+  
 	public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {	
 		ObjectArrayList<RigidBody> termites= BasicDemo.getTermites();
 		ArrayList<ArrayList<Float>> posList=BasicDemo.getPositionList();
-		
-		
+		boolean increased=false;
 		//record the position every 1/10 sec, 2 times faster.
 		//problem with the beginning
 		int count=BasicDemo.getCount();
-		Long diff=(long)30;
-	
+		Long diff=(long)60;
+		BasicDemo.incrementCounti();
 		long time=BasicDemo.getTime();
 		//System.out.println("Time: "+time+"; Count:"+ count);
 		if(time<count*200+diff && time>count*200-diff){
 			BasicDemo.incrementCount();
+			BasicDemo.setConti(0);
+			increased=true;
 		  	System.out.println("Increment count to "+ count + " at time "+ time/1000);
 		  	//for every termite, record the position
 			 for (int j=0; j<termites.size(); j++) {
@@ -75,8 +76,7 @@ public class Model1 extends InternalTickCallback{
 					float center_x=position.x;
 					float center_y=position.y;
 					float angle=getAngle(orientation);
-					//System.out.println(angle);
-					//position, angle correct 
+				    //position, angle correct 
 					float terLen=BasicDemo.getTermiteLen();
 					termiteHalfLen=(terLen/2);
 					termiteRadius=BasicDemo.getTermiteRad();
@@ -89,8 +89,8 @@ public class Model1 extends InternalTickCallback{
 			 }
 		}
 		
-	
-		
+	 
+	    //TODO: frame rate dependent?	
 	    for (int j=0; j<termites.size(); j++) {
 	    	RigidBody body= termites.get(j);	
 			Vector3f position= new Vector3f(0,0,0);
@@ -98,14 +98,10 @@ public class Model1 extends InternalTickCallback{
 			position=body.getCenterOfMassPosition(position);
 			Quat4f orientation=new Quat4f();
 			orientation=body.getOrientation(orientation);
-			
-			
 			//for each termite, classify the input condition
 			float center_x=position.x;
 			float center_y=position.y;
 			float angle=getAngle(orientation);
-			//System.out.println(angle);
-			//position, angle correct 
 			float terLen=BasicDemo.getTermiteLen();
 			termiteHalfLen=(terLen/2);
 			termiteRadius=BasicDemo.getTermiteRad();
@@ -113,11 +109,6 @@ public class Model1 extends InternalTickCallback{
 			float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
 			float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
 			float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
-			
-
-			//System.out.println("Head: "+head_x+" "+head_y);
-			//System.out.println("Tail: "+tail_x+" "+tail_y);
-			//1.check for wall.tested
 			for (int dir=0;dir<4;dir++){
 				values[dir]=0;
 	             double point_x=head_x+range*Math.cos(angle-angleRange*dir);
@@ -152,16 +143,14 @@ public class Model1 extends InternalTickCallback{
 				}
 			}
 			
-			//draw the termites direction
+			//draw the termite direction
 			Vector3f from=new Vector3f(head_x,head_y,position.z);
 			float front_to_x=(float) (head_x+range*Math.cos(angle));
 			float front_to_y=(float) (head_y+range*Math.sin(angle));
 			Vector3f front_to=new Vector3f(front_to_x,front_to_y,position.z);
-			
 			float left_to_x=(float) (head_x+range*Math.cos(angle+Math.PI/2));
 			float left_to_y=(float) (head_y+range*Math.sin(angle+Math.PI/2));
 			Vector3f left_to=new Vector3f(left_to_x,left_to_y,position.z);
-			
 			float right_to_x=(float) (head_x+range*Math.cos(angle-Math.PI/2));
 			float right_to_y=(float) (head_y+range*Math.sin(angle-Math.PI/2));
 			Vector3f right_to=new Vector3f(right_to_x,right_to_y,position.z);
@@ -170,67 +159,68 @@ public class Model1 extends InternalTickCallback{
 			drawLine(from,front_to,color);
 			drawLine(from,left_to,color);
 			drawLine(from,right_to,color);
-			
-			//Get the input case number
-			int caseNum=values[0]+values[1]*3+values[3]*3*3;
-			inputDistribution[caseNum]+=1;
-			
-			forcex=(float) (10*(1-count/4001)*5);
-			
-			Vector3f localforce=new Vector3f(forcex,(float) (Math.random()*10-5),10);
+
+
+					int caseNum=values[0]+values[1]*3+values[3]*3*3;
+					inputDistribution[caseNum]+=1;
+   
+					forcex=(float) (30-(count/1000.0)*4);
+					//add some randomness
+					Vector3f localforce=new Vector3f(forcex+(float) (Math.random()*10-5),(float) ((float) (Math.random()*10-5)),5);
+					 if ( values[3]!=0 && values[1]!=0 && values[0]!=0){localforce=new Vector3f(-5,0,5);/*go back*/ }
+					 if(increased){
+					     	Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, 4);
+							Transform tr=new Transform();
+							tr=body.getCenterOfMassTransform(tr);
+							float rotatedAngle=(float) ((float)5+count/1000*4);   //0.15-0.07, approximately 10 degree. Want:0.15,8 degree
+						//	rotatedAngle=rotatedAngle/BasicDemo.getConti();
+							//0.1:2.94255;0.125:2.89188, 0.25: 2.6516; 0.5:2.214; 0.75:1.854,1:1.57, 1.25:1.35; 1.5:1.176; 
+					     	//2:0.9272; 2.5:0.76;(45)5:0.394; 10:0.2; 20:0.1; 30:0.0666;40:0.05;50:0.04  
+							boolean rotate=false;
+					    	double random=Math.random()*100;
+					    	double cut=50;
+					    	double cut2=80;
+					    	double r=Math.random();
+							//first, check for front .inverse turn left
+					       if (values[0]!=0 && random>cut){
+								if (values[3]==0 || values[1]==0 ){
+					                rotate=true;
+					                if (values[1]==0 ){ rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}		 //if nothing on the left, turn left
+							    	if (values[3]==0 ){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); }  //if nothing on the right, turn right:positive
+									if (values[3]==0 && values[1]==0){
+										if(random>cut2){
+										if (r>0.5){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}
+										else{rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}
+										}
+									}
+								}
+								if(values[3]!=0 && values[1]!=0){//go back
+									localforce=new Vector3f(-5,0,5);
+									}
+								
+							}
+					    	else{ //when the front is empty
+					    		 //right not empty, left empty, turn to left a bit
+								 if ( values[3]!=0 && values[1]==0 && random>cut){ rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);rotation.inverse();  }	
+								//left not empty, right empty, turn to right a bit
+								 if ( values[1]!=0 && values[3]==0 && random>cut){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}  //if nothing on the right, turn right:positive
+								 if ( values[3]!=0 && values[1]!=0){localforce=new Vector3f(-5,0,5);/*go back*/ }
+					    	
+				          }
+				         
+							if(rotate){
+									localforce=new Vector3f(0,0,5);
+									Quat4f newAngle=new Quat4f();
+									newAngle=body.getOrientation(newAngle);
+									rotation.mul(newAngle);
+								    tr.setRotation(rotation);
+							        body.setCenterOfMassTransform(tr);
 		
-			
-	    	Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, 4);
-	    	float rotatedAngle=90;
-			Transform tr=new Transform();
-			tr=body.getCenterOfMassTransform(tr);
-			
-	    	boolean rotate=false;
-	    	double random=Math.random()*100;
-	    	double cut=50;
-			//first, check for front
-			if (values[0]!=0 && random>cut){ // and
-				if (values[3]==0 || values[1]==0){
-                rotate=true;
-                if (values[1]==0 ){ rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}		 //if nothing on the left, turn left
-		    	if (values[3]==0 ){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); }  //if nothing on the right, turn right:positive
-				if (values[3]==0 && values[1]==0){
-					if (j>10){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}
-					else{rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}
-				}
-				}
-			}
-			//finally, check for right
-			if (values[3]!=0 && random>cut){
-				if (values[0]==0 || values[1]==0){
-				if (values[0]==0){rotate=false;}  //if nothing on the front,don't turn
-				if (values[1]==0){ rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}		 //if nothing on the left, turn left
-				}
-			}
-         
-			//next, check for left
-			if (values[1]!=0 && random>cut){
-				if (values[0]==0 || values[3]==0){
-					if (values[0]==0){ rotate=false; }		 //if nothing on the left, turn a bit right
-				if (values[3]==0){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); }  //if nothing on the right, turn right:positive
-			
-				}
-			}
-			
-		
-	    	
-			if(rotate){
-				localforce=new Vector3f(-10,0,10);
-				Quat4f newAngle=new Quat4f();
-				newAngle=body.getOrientation(newAngle);
-				rotation.mul(newAngle);
-			    tr.setRotation(rotation);
-		        body.setCenterOfMassTransform(tr);
-	        }
-			Vector3f globalForce=rotate(angle,localforce);
-			drawLine(position,new Vector3f(position.x+globalForce.x,position.y+globalForce.y,position.z ),new Vector3f(1,1,0));
-			body.setLinearVelocity(globalForce);
-			
+						    }
+                   }
+					Vector3f globalForce=rotate(angle,localforce);
+					//drawLine(position,new Vector3f(position.x+globalForce.x,position.y+globalForce.y,position.z ),new Vector3f(1,1,0));
+					body.setLinearVelocity(globalForce);			       
            }
 		}
 	

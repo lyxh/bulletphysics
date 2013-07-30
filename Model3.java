@@ -29,8 +29,12 @@ import com.bulletphysics.util.ObjectArrayList;
 import com.bulletphysics.BasicDemo;
 
 /**
- * The model that is similar to model 1. Only forward, side distance and angle rotated are taken into account
- * But the distribution is drawn from the original data set.
+ * Added soil building.
+ * Model based on inspection. Start building by random chance. Speed slow, rotation slow.
+ * Building successful if remain in the same position for 10 count.
+ * Put down soil when seeing the dish.
+ * TODO: If input distribution is different for carrying soil around.
+ * 
  * @author ssr
  *
  */
@@ -55,6 +59,7 @@ public class Model3 extends InternalTickCallback{
 	private DynamicsWorld dynamicsWorld;
 	private IGL gl;
 	private static boolean sameForcesOverSeveralFrames=true;
+	private static boolean applyNew=false;
    public static  int[] returnInputDis(){return inputDistribution;}
 	
 	
@@ -68,20 +73,50 @@ public class Model3 extends InternalTickCallback{
 
 	public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {	
 		ObjectArrayList<RigidBody> termites= BuildingDemo.getTermites();
-		ArrayList<ArrayList<Vector3f>> posList=BuildingDemo.getPositionList();
-		ArrayList<ArrayList<Quat4f>> oriList=BuildingDemo.getOrientationList();
+		ArrayList<ArrayList<Float>> posList=BuildingDemo.getPositionList();
+		//record the position every 1/5 sec
+				int count=BasicDemo2.getCount();
+				Long diff=(long)40;
+				long time=BuildingDemo.getTime();
+				applyNew=false;
+				//System.out.println("Time: "+time+"; Count:"+ count);
+				if(time<count*200+diff && time>count*200-diff){
+					BuildingDemo.incrementCount();
+					applyNew=true;
+				  	System.out.println("Increment count to "+ count + " at time "+ time/1000);
+				  	//for every termite, record the position
+					 for (int j=0; j<termites.size(); j++) {
+					    	RigidBody body= termites.get(j);	
+							Vector3f position= new Vector3f(0,0,0);
+							//get the position and orientation of each termite                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+							position=body.getCenterOfMassPosition(position);
+							Quat4f orientation=new Quat4f();
+							orientation=body.getOrientation(orientation);
+							//for each termite, classify the input condition
+							float center_x=position.x;
+							float center_y=position.y;
+							float angle=getAngle(orientation);
+							//System.out.println(angle);
+							//position, angle correct 
+							float terLen=BuildingDemo.getTermiteLen();
+							termiteHalfLen=(terLen/2);
+							float head_x=(float) (center_x+termiteHalfLen*Math.cos(angle));
+							float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
+							float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
+							float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
+						  	posList.get(j).add(head_x);	posList.get(j).add(head_y);	posList.get(j).add(tail_x);	posList.get(j).add(tail_y);	
+					 }
+				}
+				
+				
 		 for (int j=0; j<termites.size(); j++) {
 			int caseNum=getCaseNum(j);
-			
 	    	RigidBody body= termites.get(j);	
 			Vector3f position= new Vector3f(0,0,0);
 			//get the position and orientation of each termite                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
 			position=body.getCenterOfMassPosition(position);
 			Quat4f orientation=new Quat4f();
-			orientation=body.getOrientation(orientation);
-			posList.get(j).add(position);
-			oriList.get(j).add(orientation);
-			
+			orientation=body.getOrientation(orientation);	
 			//for each termite, classify the input condition
 			float center_x=position.x;
 			float center_y=position.y;
@@ -120,10 +155,8 @@ public class Model3 extends InternalTickCallback{
 			int curState=BuildingDemo.getState(j);
 			Vector3f localforce=getForce(curState,caseNum,caseCount);
 			
-			//System.out.println("In state: "+curState+" for "+BuildingDemo.getTimeInState(j)[curState]);
 			int nextState=changeState(j,position, head_x,head_y);
 			BuildingDemo.setState(nextState, j);
-			//System.out.println("Next state is: "+nextState);
 			localforce=getForceAngleFromDistribution(caseNum,caseCount);
 		    float rotatedAngle=(float)localforce.z;
 			localforce.z=0;
@@ -255,8 +288,7 @@ public class Model3 extends InternalTickCallback{
 
 	private int getCaseNum(int j) {
 		ObjectArrayList<RigidBody> termites= BuildingDemo.getTermites();
-		ArrayList<ArrayList<Vector3f>> posList=BuildingDemo.getPositionList();
-		ArrayList<ArrayList<Quat4f>> oriList=BuildingDemo.getOrientationList();
+		ArrayList<ArrayList<Float>> posList=BuildingDemo.getPositionList();
 	
 	    	RigidBody body= termites.get(j);	
 			Vector3f position= new Vector3f(0,0,0);
@@ -264,9 +296,6 @@ public class Model3 extends InternalTickCallback{
 			position=body.getCenterOfMassPosition(position);
 			Quat4f orientation=new Quat4f();
 			orientation=body.getOrientation(orientation);
-			posList.get(j).add(position);
-			oriList.get(j).add(orientation);
-			
 			//for each termite, classify the input condition
 			float center_x=position.x;
 			float center_y=position.y;
@@ -278,17 +307,13 @@ public class Model3 extends InternalTickCallback{
 			float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
 			float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
 			float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
-			
-
-			
 			//1.check for wall.tested
 			for (int dir=0;dir<4;dir++){
 				values[dir]=0;
 	             double point_x=head_x+range*Math.cos(angle-angleRange*dir);
 	             double point_y=head_y+range*Math.sin(angle-angleRange*dir);
 	             if (Math.hypot(point_x,point_y)>dishRadius){ values[dir]=1;}
-			}	 
-			
+			}	 		
 			//2.check for other termites
 			for (int otherTer=0; otherTer<BuildingDemo.getTermiteCount();otherTer++){
 				if (j!=otherTer){

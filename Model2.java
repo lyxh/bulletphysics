@@ -65,10 +65,8 @@ public class Model2 extends InternalTickCallback{
 		
 		
 		//record the position every 1/5 sec
-		
 		int count=BasicDemo2.getCount();
-		Long diff=(long)40;
-	
+		Long diff=(long)50;
 		long time=BasicDemo2.getTime();
 		applyNew=false;
 		//System.out.println("Time: "+time+"; Count:"+ count);
@@ -96,8 +94,7 @@ public class Model2 extends InternalTickCallback{
 					float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
 					float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
 					float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
-				  	posList.get(j).add(head_x);	posList.get(j).add(head_y);	posList.get(j).add(tail_x);	posList.get(j).add(tail_y);
-				  	
+				  	posList.get(j).add(head_x);	posList.get(j).add(head_y);	posList.get(j).add(tail_x);	posList.get(j).add(tail_y);	
 			 }
 		}
 		
@@ -120,9 +117,6 @@ public class Model2 extends InternalTickCallback{
 			float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
 			float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
 			float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
-			
-
-			
 			//1.check for wall.tested
 			for (int dir=0;dir<4;dir++){
 				values[dir]=0;
@@ -130,7 +124,6 @@ public class Model2 extends InternalTickCallback{
 	             double point_y=head_y+range*Math.sin(angle-angleRange*dir);
 	             if ((point_x*point_x+point_y*point_y)>dishRadius*dishRadius){ values[dir]=1;}
 			}	 
-			
 			//2.check for other termites
 			for (int otherTer=0; otherTer<BasicDemo2.getTermiteCount();otherTer++){
 				if (j!=otherTer){
@@ -184,24 +177,41 @@ public class Model2 extends InternalTickCallback{
 			inputDistribution[caseNum]+=1;
 			int caseCount=BasicDemo2.getCaseCount()[caseNum];
 			Vector3f localforce=getForceAngleFromDistribution(caseNum,caseCount);
+		    float rr=(float)localforce.z; 
 		    float rotatedAngle=(float)localforce.z;
-			localforce.z=0;
+		    //change rotatedAngle to the right value
+	     	//0.1:2.94255;0.125:2.89188, 0.25: 2.6516; 0.5:2.214; 0.75:1.854,1:1.57, 1.25:1.35; 1.5:1.176; 
+	     	//2:0.9272; 2.5:0.76;(45)5:0.394; 10:0.2; 20:0.1; 30:0.0666;40:0.05;50:0.04  
+		    float r=Math.abs(rr);
+		    if(r>0 && r<=0.0666){rotatedAngle=35;}
+		    else if(r>0.0666 && r<=0.1){rotatedAngle=25;}
+		    else if(r>0.1 && r<=0.2){rotatedAngle=15;}
+		    else if(r>0.2 && r<=0.4){rotatedAngle=7;}
+		    else if(r>0.4 && r<=0.8){rotatedAngle=3;}
+		    else if(r>0.8 && r<=0.9){rotatedAngle=(float) 2.2;}
+		    else if(r>0.9 && r<=1.176){rotatedAngle=(float) 1.5;}
+		    else if(r>1.176 && r<=1.57){rotatedAngle=(float) 1.25;}
+		    else if(r>1.57 && r<=2.217){rotatedAngle=(float) 0.75;}
+		    else{
+		    	rotatedAngle=(float) 0.6;
+		    }
+		    if(rr<0){rotatedAngle*=-1;}
+		    
+			localforce.z=-5;
 			if (sameForcesOverSeveralFrames){
 				int counter=BasicDemo2.getCounter();
 				if (counter % continuing ==1 ){			
 			      localforce=getForceAngleFromDistribution(caseNum,caseCount);
-			      rotatedAngle=localforce.z/continuing;
+			      rotatedAngle= rotatedAngle;
 			      BasicDemo2.setForce(localforce,j);
 				}
 				else{
 					localforce=BasicDemo2.getForce().get(j);
-					rotatedAngle=(float) (localforce.z)/continuing;
+					rotatedAngle=(float) rotatedAngle;
 				}
 			}
 			
-			rotatedAngle=(float) (rotatedAngle/Math.PI*180);
-			//System.out.println(localforce);
-			if (applyNew){
+			if (applyNew){// rotate once 1/5 sec
             //System.out.println(rotatedAngle);
             if (Math.abs(rotatedAngle)>4){
 	            Transform tr=new Transform();
@@ -222,15 +232,13 @@ public class Model2 extends InternalTickCallback{
 				    tr.setRotation(rotation);
 			        body.setCenterOfMassTransform(tr); 
 			        newAngle=body.getOrientation(newAngle);
-				}
-				
+				}		
             }
 			 }
 			Vector3f globalForce=rotate(angle,localforce);
 			globalForce.z=pullDownForce;
 			body.setLinearVelocity(globalForce);
-			//drawLine(position,new Vector3f(position.x+globalForce.x,position.y+globalForce.y,position.z ),new Vector3f(1,1,0));
-		       
+			//drawLine(position,new Vector3f(position.x+globalForce.x,position.y+globalForce.y,position.z ),new Vector3f(1,1,0));   
 		    }
 	}
 	
