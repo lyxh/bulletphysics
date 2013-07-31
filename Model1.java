@@ -21,7 +21,7 @@ import com.bulletphysics.BasicDemo;
 
 
 /**
- * The simplest model that let the termite walk straight forward. When there is a wall on the way, move to the side where there is no obstacle.
+ * The model based on inspection.
  * @author yixin :)   U_U
  *
  */
@@ -40,7 +40,7 @@ public class Model1 extends InternalTickCallback{
 		this.dynamicsWorld=dy;
 		this.gl=gl;
 	}
-
+public static int counti;
 	public static int[] getInputDis(){return inputDistribution;}
   
 	public void internalTick(DynamicsWorld dynamicsWorld, float timeStep) {	
@@ -50,10 +50,12 @@ public class Model1 extends InternalTickCallback{
 		//record the position every 1/10 sec, 2 times faster.
 		//problem with the beginning
 		int count=BasicDemo.getCount();
-		Long diff=(long)60;
+		Long diff=(long)50;
 		long time=BasicDemo.getTime();
-		//System.out.println("Time: "+time+"; Count:"+ count);
+		
 		if(time<count*200+diff && time>count*200-diff){
+			counti=BasicDemo.getCounti();
+			BasicDemo.clearCounti();
 			BasicDemo.incrementCount();
 			increased=true;
 		  	System.out.println("Increment count to "+ count + " at time "+ time/1000);
@@ -78,8 +80,9 @@ public class Model1 extends InternalTickCallback{
 					float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
 				  	posList.get(j).add(head_x);	posList.get(j).add(head_y);	posList.get(j).add(tail_x);	posList.get(j).add(tail_y);
 				  	
-			 }
-		}
+			 }}
+		
+			 else{BasicDemo.increCounti();}
 		
 	 
 	   for (int j=0; j<termites.size(); j++) {
@@ -124,7 +127,7 @@ public class Model1 extends InternalTickCallback{
 					//check if the termite is too close
 					if (Math.pow((other_x-head_x),2)+Math.pow((other_y-head_y),2)<range*range || Math.pow((other_head_x-head_x),2)+Math.pow((other_head_y-head_y),2)<range*range || Math.pow(other_tail_x-head_x,2)+Math.pow(other_tail_y-head_y,2)<range*range){
 						//if the termite is close, check in which quadrant it is.
-						float dis_angle=(float) Math.atan2(other_y-head_y,other_x-head_x);
+						float dis_angle=(float) Math.atan2(other_head_y-head_y,other_head_x-head_x);
 						float angleChange=getAngleChange(angle, dis_angle);
 						int direction=getDirectionFromAngle((double)angleChange);
 						values[direction]=2;	
@@ -152,19 +155,24 @@ public class Model1 extends InternalTickCallback{
 			int caseNum=values[0]+values[1]*3+values[3]*3*3;
 					inputDistribution[caseNum]+=1;
    
-					forcex=(float) (30-(count/1000.0)*4);
-					//add some randomness
-			Vector3f localforce=new Vector3f(forcex+(float) (Math.random()*10-5),(float) ((float) (Math.random()*10-5)),5);
-			// if ( values[3]!=0 && values[1]!=0 && values[0]!=0){localforce=new Vector3f(-5,0,5);/*go back*/ }
-			 if(increased){
-			     	Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, 4);
-					Transform tr=new Transform();
-					tr=body.getCenterOfMassTransform(tr);
-					float rotatedAngle=(float) ((float)5+count/1000*4);   //0.15-0.07, approximately 10 degree. Want:0.15,8 degree
-				//	rotatedAngle=rotatedAngle/BasicDemo.getConti();
-					//0.1:2.94255;0.125:2.89188, 0.25: 2.6516; 0.5:2.214; 0.75:1.854,1:1.57, 1.25:1.35; 1.5:1.176; 
-			     	//2:0.9272; 2.5:0.76;(45)5:0.394; 10:0.2; 20:0.1; 30:0.0666;40:0.05;50:0.04  
-					boolean rotate=false;
+			forcex=(float) (30-(count/1000.0)*4);
+			//add some randomness
+			Vector3f localforce=new Vector3f(forcex,(float) ((float) (Math.random()*10-5)),5);//+(float) (Math.random()*10-5)
+			 if ( values[3]!=0 && values[1]!=0 && values[0]!=0){localforce=new Vector3f(-5,0,5);/*go back*/ }
+			
+			
+			Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, 4);
+			Transform tr=new Transform();
+			tr=body.getCenterOfMassTransform(tr);
+			float rotatedAngle=(float) ((float)5+count/1000*4);   //0.15-0.07, approximately 10 degree. Want:0.15,8 degree
+			float angle2=(float) ((float)20+count/1000*4); 
+		    //	rotatedAngle=rotatedAngle/BasicDemo.getConti();
+			//0.1:2.94255;0.125:2.89188, 0.25: 2.6516; 0.5:2.214; 0.75:1.854,1:1.57, 1.25:1.35; 1.5:1.176; 
+	     	//2:0.9272; 2.5:0.76;(45)5:0.394; 10:0.2; 20:0.1; 30:0.0666;40:0.05;50:0.04  
+			boolean rotate=false;
+			
+			 if(increased){//get the new angle and the force
+			     	
 			    	double random=Math.random()*100;
 			    	double cut=0;
 			    	double r=Math.random();
@@ -180,18 +188,18 @@ public class Model1 extends InternalTickCallback{
 								else{rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}
 							}
 						}
-						if(values[3]!=0 && values[1]!=0){localforce=new Vector3f(-5,0,5);}
+						if(values[3]!=0 && values[1]!=0){localforce=new Vector3f(-20,0,5);rotate=false;}
 					}
 			       
 			    	else{ //when the front is empty
 			    		 //right not empty, left empty, turn to left a bit
-						 if ( values[3]==2 && values[1]==0 ){ rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);rotation.inverse();  }	
+						 if ( values[3]==2 && values[1]==0 ){ rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, angle2);rotation.inverse();  }	
 						 if ( values[3]==1 && values[1]==0 && random>cut){ rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);rotation.inverse();  }	
 						 //left not empty, right empty, turn to right a bit
-						 if ( values[1]==2 && values[3]==0 ){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}  //if nothing on the right, turn right:positive
+						 if ( values[1]==2 && values[3]==0 ){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, angle2);}  //if nothing on the right, turn right:positive
 						 if ( values[1]==1 && values[3]==0 && random>cut){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}  //if nothing on the right, turn right:positive
 						 
-						 if ( values[3]!=0 && values[1]!=0){localforce=new Vector3f(-5,0,5);/*go back*/ }
+						 if ( values[3]!=0 && values[1]!=0){localforce=new Vector3f(-20,0,5);rotate=false;/*go back*/ }
 			    	
 		          }
 		         

@@ -96,7 +96,6 @@ public class BasicDemo extends DemoApplication {
     private static float termiteLen=26;
     private float termiteHeight=-6;
     private static ArrayList<ArrayList<Float>> positionList= new ArrayList<ArrayList<Float>>();
-    private static float time=0; 
     private static int count=1;
      
 
@@ -128,7 +127,12 @@ public class BasicDemo extends DemoApplication {
 		final long diff=endTime-start_time;
 		return diff;
 	}
-	
+	public static int counti=0;
+	public static void clearCounti(){counti=0;}	
+	public static int getCounti(){return counti;}
+	public static void increCounti(){counti++;}
+	public static boolean rotate=true;
+	public static void setRotate(boolean newVal){rotate=newVal;}
 	@Override
 	public void clientMoveAndDisplay() {
 		gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -137,13 +141,12 @@ public class BasicDemo extends DemoApplication {
 		if (dynamicsWorld != null) {
 			//TODO: set the time to be correct
 			if(counter==0){	start_time = System.currentTimeMillis();}
-			dynamicsWorld.stepSimulation((float)1/60); //step the world once 1/5 sec.
+			dynamicsWorld.stepSimulation(1/5f); //step the world once 1/5 sec.//getDeltaTimeMicroseconds()/ 1000000f
             InternalTickCallback cb=new Model1(dynamicsWorld, gl);//MyInternalTickCallback ();
 			Object worldUserInfo=0;	
 			dynamicsWorld.setInternalTickCallback(cb, worldUserInfo);
 			dynamicsWorld.debugDrawWorld();
 		}
-		time+=1;
 		counter++;
 		renderme();
 		
@@ -156,8 +159,6 @@ public class BasicDemo extends DemoApplication {
 			    start+="];";
 			 System.out.println(start);
 	   }
-		//glFlush();
-		//glutSwapBuffers();
 	}
 
 	
