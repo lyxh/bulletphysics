@@ -75,7 +75,7 @@ public class BasicDemo extends DemoApplication {
 	private DefaultCollisionConfiguration collisionConfiguration;
 	
 	private RigidBody dish;       
-	private static int dishRadius=220;
+	private static int dishRadius=215;
 	private int dishPoints=5000;
 	private int numOfTriangles=dishPoints;
 	private int dishHeight=30;
@@ -84,7 +84,7 @@ public class BasicDemo extends DemoApplication {
 	private static RigidBody soilBody;
 	private static ByteBuffer gVertices;
 	private static ByteBuffer gIndices;
-	private static int NUM_VERTS_X = (1+dishRadius/10)*2;
+	private static int NUM_VERTS_X = (1+220/10)*2;
 	private static int NUM_VERTS_Y = NUM_VERTS_X ;
 	private static int totalVerts = NUM_VERTS_X*NUM_VERTS_Y;
 	
@@ -133,6 +133,8 @@ public class BasicDemo extends DemoApplication {
 	public static void increCounti(){counti++;}
 	public static boolean rotate=true;
 	public static void setRotate(boolean newVal){rotate=newVal;}
+	
+    String start="";
 	@Override
 	public void clientMoveAndDisplay() {
 		gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -149,10 +151,18 @@ public class BasicDemo extends DemoApplication {
 		}
 		counter++;
 		renderme();
-		
-		if(count==1000)	{		
-            	toTxtFile(positionList,1);	//toTxtFile(positionList,2);	toTxtFile(positionList,3);	toTxtFile(positionList,4);
-			    String start="input=[";
+		if(count==1000){
+			toTxtFile(positionList,1);
+			start+="one=[";
+			   for (int i=0;i<27;i++){ 
+					start+=(Model1.getInputDis()[i]+","); 	    
+			    }    
+			    start+="];";
+			    System.out.println(start);
+		}
+		if(count==2000)	{		
+            		toTxtFile(positionList,2);	//toTxtFile(positionList,3);	toTxtFile(positionList,4);
+			    start+="two=[";
 			    for (int i=0;i<27;i++){ 
 					start+=(Model1.getInputDis()[i]+","); 	    
 			    }    

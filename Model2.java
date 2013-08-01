@@ -8,22 +8,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-
-import javax.vecmath.Matrix3f;
-import javax.vecmath.Matrix4f;
 import javax.vecmath.Quat4f;
-import javax.vecmath.Tuple2d;
 import javax.vecmath.Vector3f;
-import javax.vecmath.Vector4f;
-
-import com.bulletphysics.collision.dispatch.CollisionObject;
-import com.bulletphysics.collision.narrowphase.ManifoldPoint;
-import com.bulletphysics.collision.narrowphase.PersistentManifold;
 import com.bulletphysics.demos.opengl.IGL;
 import com.bulletphysics.dynamics.DynamicsWorld;
 import com.bulletphysics.dynamics.InternalTickCallback;
 import com.bulletphysics.dynamics.RigidBody;
-import com.bulletphysics.linearmath.QuaternionUtil;
 import com.bulletphysics.linearmath.Transform;
 import com.bulletphysics.util.ObjectArrayList;
 import com.bulletphysics.BasicDemo2;
@@ -35,7 +25,7 @@ import com.bulletphysics.BasicDemo2;
  *
  */
 public class Model2 extends InternalTickCallback{	
-	private static int range=20;//how far away the termite could sense
+	private static int range=18;//how far away the termite could sense
 	private static float termiteHalfLen;
 	private static int[] values=new int[4];
 	private static double angleRange=Math.PI/2;
@@ -143,10 +133,14 @@ public class Model2 extends InternalTickCallback{
 					//check if the termite is too close
 					if (Math.pow((other_x-head_x),2)+Math.pow((other_y-head_y),2)<range*range || Math.pow((other_head_x-head_x),2)+Math.pow((other_head_y-head_y),2)<range*range || Math.pow(other_tail_x-head_x,2)+Math.pow(other_tail_y-head_y,2)<range*range){
 						//if the termite is close, check in which quadrant it is.
-						float dis_angle=(float) Math.atan2(other_y-head_y,other_x-head_x);
+						float dis_angle=(float) Math.atan2(other_head_y-head_y,other_head_x-head_x);
 						float angleChange=getAngleChange(angle, dis_angle);
 						int direction=getDirectionFromAngle((double)angleChange);
-						values[direction]=2;				
+						values[direction]=2;
+						float dis_angle2=(float) Math.atan2(other_head_y-head_y,other_head_x-head_x);
+						float angleChange2=getAngleChange(angle, dis_angle2);
+						int direction2=getDirectionFromAngle((double)angleChange2);
+						values[direction2]=2;
 					}
 				}
 			}

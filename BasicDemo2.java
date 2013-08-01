@@ -74,7 +74,7 @@ public class BasicDemo2 extends DemoApplication {
 	private DefaultCollisionConfiguration collisionConfiguration;
 	
 	private RigidBody dish;       
-	private static int dishRadius=220;
+	private static int dishRadius=215;
 	private int dishPoints=5000;
 	private int numOfTriangles=dishPoints;
 	private int dishHeight=30;
@@ -83,7 +83,7 @@ public class BasicDemo2 extends DemoApplication {
 	private static RigidBody soilBody;
 	private static ByteBuffer gVertices;
 	private static ByteBuffer gIndices;
-	private static int NUM_VERTS_X = (1+dishRadius/10)*2;
+	private static int NUM_VERTS_X = (1+220/10)*2;
 	private static int NUM_VERTS_Y = NUM_VERTS_X ;
 	private static int totalVerts = NUM_VERTS_X*NUM_VERTS_Y;
 	private static String distribution="";
@@ -100,18 +100,18 @@ public class BasicDemo2 extends DemoApplication {
      
  	//result(caseCount,3,caseNum) in matlab
  	public static ArrayList<float[][]> trackingData=new ArrayList<float[][]>();
-	private String caseDataPath="D:\\Yixin\\model\\tracking\\Case_";
-	private String caseCountPath="D:\\Yixin\\model\\tracking\\Case_Count_Model_2.txt";
-	private String caseDataPath2="D:\\Yixin\\model\\tracking\\SecondCase_";
-	private String caseCountPath2="D:\\Yixin\\model\\tracking\\SecondCase_Count_Model_2.txt";
-	private String caseDataPath3="D:\\Yixin\\model\\tracking\\ThirdCase_";
-	private String caseCountPath3="D:\\Yixin\\model\\tracking\\ThirdCase_Count_Model_2.txt";
-	private String caseDataPath4="D:\\Yixin\\model\\tracking\\ForthCase_";
-	private String caseCountPath4="D:\\Yixin\\model\\tracking\\ForthCase_Count_Model_2.txt";
-	private String caseDataPath5="D:\\Yixin\\model\\tracking\\FiveCase_";
-	private String caseCountPath5="D:\\Yixin\\model\\tracking\\FiveCase_Count_Model_2.txt";
-	private String caseDataPath6="D:\\Yixin\\model\\tracking\\SixCase_";
-	private String caseCountPath6="D:\\Yixin\\model\\tracking\\SixCase_Count_Model_2.txt";
+	private String caseDataPath="D:\\Yixin\\model\\trackingData\\Block1_Case";
+	private String caseCountPath="D:\\Yixin\\model\\trackingData\\Case_Count_Model2_Block1.txt";
+	private String caseDataPath2="D:\\Yixin\\model\\trackingData\\Block2_Case";
+	private String caseCountPath2="D:\\Yixin\\model\\trackingData\\Case_Count_Model2_Block2.txt";
+	private String caseDataPath3="D:\\Yixin\\model\\trackingData\\Block3_Case";
+	private String caseCountPath3="D:\\Yixin\\model\\trackingData\\Case_Count_Model2_Block3.txt";
+	private String caseDataPath4="D:\\Yixin\\model\\trackingData\\Block4_Case";
+	private String caseCountPath4="D:\\Yixin\\model\\trackingData\\Case_Count_Model2_Block4.txt";
+	private String caseDataPath5="D:\\Yixin\\model\\trackingData\\Block5_Case";
+	private String caseCountPath5="D:\\Yixin\\model\\trackingData\\Case_Count_Model2_Block5.txt";
+	private String caseDataPath6="D:\\Yixin\\model\\trackingData\\Block6_Case";
+	private String caseCountPath6="D:\\Yixin\\model\\trackingData\\Case_Count_Model2_Block6.txt";
 	private static int[] caseCount=new int[27];
 	private static ArrayList<Vector3f> force=new ArrayList<Vector3f>();
 	public static int counter=0;
