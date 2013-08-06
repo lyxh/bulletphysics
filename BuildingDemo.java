@@ -88,7 +88,7 @@ public class BuildingDemo extends DemoApplication {
 	
 
 	private static ObjectArrayList<RigidBody> termites= new ObjectArrayList<RigidBody>();
-	private static int numOfTermites=1;
+	private static int numOfTermites=10;
 	private static int[] states=new int[numOfTermites];
 	private static ArrayList<int[]> timeSpentInOneState= new ArrayList<int[]>();
 	private static float termiteRadius=5;
@@ -413,6 +413,37 @@ public class BuildingDemo extends DemoApplication {
 	}
 	
 	
+	/**
+	 * Output the center position and orientation of each termite to a txt file. (positionList and orientationList)
+	 * The head and tail positions could be calculated from the position and orientation.
+	 */
+	public void soilToTxtFile(ArrayList<Float> posList){
+		FileOutputStream fop = null;
+		File file;
+		String filename = "D:\\Yixin\\model\\4\\Heights.txt";
+		String content = "";
+		for(int i=0;i<posList.size();i++){
+			Float point=posList.get(i);
+             content=content+point.toString()+ " ";
+		}
+	    try {
+				file = new File(filename);
+				fop = new FileOutputStream(file);
+	             if (!file.exists()) {file.createNewFile();}
+	             // get the content in bytes
+				byte[] contentInBytes = content.getBytes();
+	            fop.write(contentInBytes);
+				fop.flush();
+				fop.close();
+	 
+			} 
+	    catch (IOException e) {e.printStackTrace();} 
+	    finally {
+				try {if (fop != null) {fop.close();}} 
+				catch (IOException e) {e.printStackTrace();}
+		}
+		
+	}
 	
 	public static void main(String[] args) throws LWJGLException, IOException {
 		BuildingDemo ccdDemo = new BuildingDemo(LWJGL.getGL());

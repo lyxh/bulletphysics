@@ -357,7 +357,7 @@ public class BasicDemo extends DemoApplication {
 			}
 			FileOutputStream fop = null;
 			File file;
-			String filename = "D:\\Yixin\\model\\1\\Model1Block"+block_num+"Term"+(i+1)+".txt";
+			String filename = "D:\\Yixin\\model\\1\\1\\Model1Block"+block_num+"Term"+(i+1)+".txt";
 	 
 			try {
 				file = new File(filename);

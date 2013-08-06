@@ -163,14 +163,13 @@ public class BasicDemo2 extends DemoApplication {
 		if(count==1000  && !one){
 			  synchronized (this) {
 					caseCount=readCaseCount(caseCountPath2);	
-					trackingData.clear();distribution+="   Block1:";
+					trackingData.clear();
 					for (int i=0;i<27;i++){
 						int len=caseCount[i];
 						float[][] data=new float[len][3];
 						try {data = readDistributionData(caseDataPath2, i);} 
 						catch (IOException e) {e.printStackTrace();}		
 				        trackingData.add(data);
-				        distribution+=(Integer.toString(Model2.getInputDis()[i]))+",";
 						}
 					  one=true;
 					  }
@@ -181,14 +180,14 @@ public class BasicDemo2 extends DemoApplication {
 			 synchronized (this) {
 					caseCount=readCaseCount(caseCountPath3);	
 					trackingData.clear(); 
-					distribution+="   Block2:";
+					//distribution+="   Block2:";
 					for (int i=0;i<27;i++){
 						int len=caseCount[i];
 						float[][] data=new float[len][3];
 						try {data = readDistributionData(caseDataPath3, i);
 						} catch (IOException e) {e.printStackTrace();}		
 						trackingData.add(data);
-						distribution+=(Integer.toString(Model2.getInputDis()[i]))+",";
+						//distribution+=(Integer.toString(Model2.getInputDis()[i]))+",";
 					}
 					 two=true;
 			}
@@ -199,7 +198,7 @@ public class BasicDemo2 extends DemoApplication {
 			 synchronized (this) {
 					caseCount=readCaseCount(caseCountPath4);	
 					trackingData.clear();
-					distribution+="  Block3:";
+					//distribution+="  Block3:";
 					for (int i=0;i<27;i++){
 						int len=caseCount[i];
 						float[][] data=new float[len][3];
@@ -207,22 +206,21 @@ public class BasicDemo2 extends DemoApplication {
 							data = readDistributionData(caseDataPath4, i);
 						} catch (IOException e) {e.printStackTrace();}		
 						 trackingData.add(data);
-						 distribution+=(Integer.toString(Model2.getInputDis()[i]))+","; }
+						// distribution+=(Integer.toString(Model2.getInputDis()[i]))+","; }
 				     three=true;
 					  }
 		}
+			 
 		boolean four=false;
 		if(count==4000  && !four){
 			 synchronized (this) {
 				 toTxtFile(positionList,1);	toTxtFile(positionList,2);	toTxtFile(positionList,3);	toTxtFile(positionList,4);
-					 distribution+="  Block4:"; 
-					for (int i=0;i<27;i++){
-				       distribution+=(Integer.toString(Model2.getInputDis()[i]))+","; 
-					}
+					 //distribution+="  Block4:"; 
 					four=true;
 					 System.out.println(distribution); 
-					  }
-		}
+			   }
+		}}
+		
 		/*
 		 * boolean five=false;
 		

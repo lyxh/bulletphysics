@@ -137,7 +137,7 @@ public class Model2 extends InternalTickCallback{
 						float angleChange=getAngleChange(angle, dis_angle);
 						int direction=getDirectionFromAngle((double)angleChange);
 						values[direction]=2;
-						float dis_angle2=(float) Math.atan2(other_head_y-head_y,other_head_x-head_x);
+						float dis_angle2=(float) Math.atan2(other_y-head_y,other_x-head_x);
 						float angleChange2=getAngleChange(angle, dis_angle2);
 						int direction2=getDirectionFromAngle((double)angleChange2);
 						values[direction2]=2;

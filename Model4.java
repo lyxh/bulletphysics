@@ -29,7 +29,7 @@ import com.bulletphysics.util.ObjectArrayList;
  *
  */
 public class Model4 extends InternalTickCallback{	
-	private static int range=30;//how far away the termite could sense
+	private static int range=18;//how far away the termite could sense
 	private static float termiteHalfLen;
 	private static int[] values=new int[4];
 	private static double angleRange=Math.PI/2;
@@ -37,8 +37,8 @@ public class Model4 extends InternalTickCallback{
     private static int digDepositDuration=20;
 	public static int[] inputDistribution= new int[27];
 	private int pullDownForce=5;
-	private static double randomStart=0.9;
-	private static double randomEnd=0.9;
+	private static double randomStart=0.95;
+	private static double randomEnd=0.95;
 	private DynamicsWorld dynamicsWorld;
 	private IGL gl;
 	private static boolean applyNew=false;
@@ -176,6 +176,9 @@ public class Model4 extends InternalTickCallback{
 			     }
 				 Vector3f globalForce=rotate(angle,localforce);
 				 body.setLinearVelocity(globalForce);	
+				 
+				 //TODO: adding check for prevent them from rotating
+				 //check for termite height, if too high, drag them down?
 		    }
 	}
 	
@@ -187,7 +190,7 @@ public class Model4 extends InternalTickCallback{
 		//if in state 0(moving), start dig if drawing a random number that is larger than randomStart and seeing a deposit at the front;
 		if (currentState==0){
 			int inStateZero=BuildingDemo.getTimeInState(termite)[0];
-			if (Math.random()>randomStart ||  Construction.nearDig(head_x, head_y)){
+			if ((Math.random()>randomStart && Construction.nearDig(head_x, head_y)) || Math.random()>0.995){
 				if( Construction.nearDig(head_x, head_y)){System.out.println("Near Digging site");}
 				nextState=1;
 				//dig, change mesh height
@@ -221,7 +224,7 @@ public class Model4 extends InternalTickCallback{
 		//if in state 2(moving), deposit with random chance
 		if (currentState==2){
 			int inStateTwo=BuildingDemo.getTimeInState(termite)[2];
-			if (Math.random()>randomEnd || Construction.nearDep(head_x, head_y)){
+			if ((Math.random()>randomEnd && Construction.nearDep(head_x, head_y))|| Math.random()>0.995){
 				if( Construction.nearDep(head_x, head_y)){System.out.println("Near Depositing site");}
 				nextState=3;
 				//dig, change mesh height

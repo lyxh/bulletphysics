@@ -50,7 +50,7 @@ public static int counti;
 		//record the position every 1/10 sec, 2 times faster.
 		//problem with the beginning
 		int count=BasicDemo.getCount();
-		Long diff=(long)50;
+		Long diff=(long)100;
 		long time=BasicDemo.getTime();
 		
 		if(time<count*200+diff && time>count*200-diff){
@@ -132,7 +132,7 @@ public static int counti;
 						int direction=getDirectionFromAngle((double)angleChange);
 						values[direction]=2;	
 						
-						float dis_angle2=(float) Math.atan2(other_tail_y-head_y,other_tail_x-head_x);
+						float dis_angle2=(float) Math.atan2(other_y-head_y,other_x-head_x);
 						float angleChange2=getAngleChange(angle, dis_angle2);
 						int direction2=getDirectionFromAngle((double)angleChange2);
 						values[direction2]=2;	
@@ -159,11 +159,15 @@ public static int counti;
 
 			int caseNum=values[0]+values[1]*3+values[3]*3*3;
 					inputDistribution[caseNum]+=1;
-   
-			forcex=(float) (25+(float) (Math.random()*10-5));
+		
+            if (caseNum==13){
+            	System.out.println(caseNum);
+            }
+          
+			forcex=(float) (20+(float) (Math.random()*20-5));
 			//add some randomness
 			Vector3f localforce=new Vector3f(forcex,(float) ((float) (Math.random()*10-5)),5);//+(float) (Math.random()*10-5)
-			 if ( values[3]!=0 && values[1]!=0 && values[0]!=0){localforce=new Vector3f(-5,0,5);/*go back*/ }
+			 if ( values[3]!=0 && values[1]!=0 && values[0]!=0){localforce=new Vector3f(-10,0,5);/*go back*/ }
 			
 			
 			Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, 4);
@@ -193,7 +197,7 @@ public static int counti;
 								else{rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}
 							}
 						}
-						if(values[3]!=0 && values[1]!=0){localforce=new Vector3f(-30,0,5);rotate=false;}
+						if(values[3]!=0 && values[1]!=0){localforce=new Vector3f(-40,0,5);rotate=false;}
 					}
 			       
 			    else{ //when the front is empty
@@ -206,7 +210,7 @@ public static int counti;
 						 if ( values[1]==2 && values[3]==0){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, angle2);}  //if nothing on the right, turn right:positive
 						 if ( values[1]==1 && values[3]==0){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}  //if nothing on the right, turn right:positive
 						 
-					 if ( values[3]!=0 && values[1]!=0){localforce=new Vector3f(-30,0,5);rotate=false; }
+					 if ( values[3]!=0 && values[1]!=0){localforce=new Vector3f(-40,0,5);rotate=false; }
 			    	
 		          }
 		         
@@ -273,9 +277,10 @@ public static int counti;
       */
 	private int getDirectionFromAngle(double angle) {
 		 int result=0;
-		 if (angle<Math.PI/4 && angle>-Math.PI/4){result=0;}
-		 if (angle<Math.PI/4*3 && angle>Math.PI/4){result=3;}
-		 if (angle<-Math.PI/4 && angle>-Math.PI/4*3){result=1;}
+		 double cut=Math.PI/4;
+		 if (angle<cut && angle>-cut){result=0;}
+		 if (angle<Math.PI/4*3 && angle>cut){result=3;}
+		 if (angle<-cut && angle>-Math.PI/4*3){result=1;}
 		 if (angle<-Math.PI/4*3 || angle>Math.PI/4*3){result=2;}
 		 return result;
 	}

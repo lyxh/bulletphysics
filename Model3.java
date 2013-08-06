@@ -28,7 +28,7 @@ import com.bulletphysics.util.ObjectArrayList;
  *
  */
 public class Model3 extends InternalTickCallback{	
-	private static int range=20;//how far away the termite could sense
+	private static int range=18;//how far away the termite could sense
 	private static float termiteHalfLen;
 	private static int[] values=new int[4];
 	private static double angleRange=Math.PI/2;
