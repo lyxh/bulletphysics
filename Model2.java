@@ -164,75 +164,70 @@ public class Model2 extends InternalTickCallback{
 			drawLine(from,left_to,color);
 			drawLine(from,right_to,color);
 			
-			
-			//Get the input case number
-			int caseNum=values[0]+values[1]*3+values[3]*3*3;
-			//System.out.println(caseNum);
-			inputDistribution[caseNum]+=1;
-			int caseCount=BasicDemo2.getCaseCount()[caseNum];
-			Vector3f localforce=getForceAngleFromDistribution(caseNum,caseCount);
-		    float rr=(float)localforce.z; 
-		    float rotatedAngle=(float)localforce.z;
-		    //change rotatedAngle to the right value
-	     	//0.1:2.94255;0.125:2.89188, 0.25: 2.6516; 0.5:2.214; 0.75:1.854,1:1.57, 1.25:1.35; 1.5:1.176; 
-	     	//2:0.9272; 2.5:0.76;(45)5:0.394; 10:0.2; 20:0.1; 30:0.0666;40:0.05;50:0.04  
-		    float r=Math.abs(rr);
-		    if(r>0 && r<=0.0666){rotatedAngle=35;}
-		    else if(r>0.0666 && r<=0.1){rotatedAngle=25;}
-		    else if(r>0.1 && r<=0.2){rotatedAngle=15;}
-		    else if(r>0.2 && r<=0.4){rotatedAngle=7;}
-		    else if(r>0.4 && r<=0.8){rotatedAngle=3;}
-		    else if(r>0.8 && r<=0.9){rotatedAngle=(float) 2.2;}
-		    else if(r>0.9 && r<=1.176){rotatedAngle=(float) 1.5;}
-		    else if(r>1.176 && r<=1.57){rotatedAngle=(float) 1.25;}
-		    else if(r>1.57 && r<=2.217){rotatedAngle=(float) 0.75;}
-		    else{
-		    	rotatedAngle=(float) 0.6;
-		    }
-		    if(rr<0){rotatedAngle*=-1;}
-		    
-			localforce.z=-5;
-			if (sameForcesOverSeveralFrames){
-				int counter=BasicDemo2.getCounter();
-				if (counter % continuing ==1 ){			
-			      localforce=getForceAngleFromDistribution(caseNum,caseCount);
-			      BasicDemo2.setForce(localforce,j);
-				}
-				else{
-					localforce=BasicDemo2.getForce().get(j);
-					rotatedAngle=(float) rotatedAngle;
-				}
-			}
-			
-			if (applyNew){// rotate once 1/5 sec
-            //System.out.println(rotatedAngle);
-            if (Math.abs(rotatedAngle)>4){
-	            Transform tr=new Transform();
-				tr=body.getCenterOfMassTransform(tr);
-				Quat4f newAngle=new Quat4f();
-				newAngle=body.getOrientation(newAngle);
-				if (rotatedAngle>0){ //turn left
-					Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);
-					rotation.inverse();
-					rotation.mul(newAngle);
-				    tr.setRotation(rotation);
-			        body.setCenterOfMassTransform(tr); 
-			        newAngle=body.getOrientation(newAngle);
-				}
-				if (rotatedAngle<=0){//turn right
-					Quat4f  rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, -rotatedAngle);
-					rotation.mul(newAngle);
-				    tr.setRotation(rotation);
-			        body.setCenterOfMassTransform(tr); 
-			        newAngle=body.getOrientation(newAngle);
-				}		
-            }
+
+
+			if (applyNew){// rotate once 1/5 sec			
+					//Get the input case number
+					int caseNum=values[0]+values[1]*3+values[3]*3*3;
+					//System.out.println(caseNum);
+					inputDistribution[caseNum]+=1;
+					int caseCount=BasicDemo2.getCaseCount()[caseNum];
+					Vector3f localforce=getForceAngleFromDistribution(caseNum,caseCount);
+				    float rr=(float)localforce.z; 
+				    float rotatedAngle=0;
+				    //change rotatedAngle to the right value
+			     	//0.1:2.94255;0.125:2.89188, 0.25: 2.6516; 0.5:2.214; 0.75:1.854,1:1.57, 1.25:1.35; 1.5:1.176; 
+			     	//2:0.9272; 2.5:0.76;(45)5:0.394; 10:0.2; 20:0.1; 30:0.0666;40:0.05;50:0.04  
+				    float r=Math.abs(rr);
+				    if(r>0 && r<=0.0666){rotatedAngle=35;}
+				    else if(r>0.0666 && r<=0.1){rotatedAngle=25;}
+				    else if(r>0.1 && r<=0.2){rotatedAngle=15;}
+				    else if(r>0.2 && r<=0.4){rotatedAngle=7;}
+				    else if(r>0.4 && r<=0.8){rotatedAngle=3;}
+				    else if(r>0.8 && r<=0.9){rotatedAngle=(float) 2.2;}
+				    else if(r>0.9 && r<=1.176){rotatedAngle=(float) 1.5;}
+				    else if(r>1.176 && r<=1.57){rotatedAngle=(float) 1.25;}
+				    else if(r>1.57 && r<=2.217){rotatedAngle=(float) 0.75;}
+				    else{
+				    	rotatedAngle=(float) 0.6;
+				    }
+				    if(rr<0){rotatedAngle*=-1;}
+				    
+					localforce.z=10;
+		            //System.out.println(rotatedAngle);
+
+					float newA=angle;
+					 if (Math.abs(rotatedAngle)>=1){
+				            Transform tr=new Transform();
+							tr=body.getCenterOfMassTransform(tr);
+							Quat4f newAngle=new Quat4f();
+							newAngle=body.getOrientation(newAngle);
+							if (rotatedAngle>0){ //turn left
+								Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);
+								rotation.inverse();
+								rotation.mul(newAngle);
+							    tr.setRotation(rotation);
+						        body.setCenterOfMassTransform(tr); 
+						        newAngle=body.getOrientation(newAngle);
+							}
+							if (rotatedAngle<=0){//turn right
+								Quat4f  rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, -rotatedAngle);
+								rotation.mul(newAngle);
+							    tr.setRotation(rotation);
+						        body.setCenterOfMassTransform(tr); 
+						        newAngle=body.getOrientation(newAngle);
+							}	
+							newA=getAngle(newAngle);
+		            }
+					 
+			           
+					Vector3f globalForce=rotate(newA,localforce);
+					globalForce.z=20;
+					//drawLine(position,new Vector3f(position.x+globalForce.x,position.y+globalForce.y,position.z ),new Vector3f(1,1,0));
+					body.setLinearVelocity(globalForce);
 			 }
-			Vector3f globalForce=rotate(angle,localforce);
-			globalForce.z=pullDownForce;
-			body.setLinearVelocity(globalForce);
-			//drawLine(position,new Vector3f(position.x+globalForce.x,position.y+globalForce.y,position.z ),new Vector3f(1,1,0));   
-		    }
+
+			 }
 	}
 	
 	private Vector3f getGlobalForce(float angle, Vector3f v){	      
@@ -262,7 +257,7 @@ public class Model2 extends InternalTickCallback{
 		          angle=BasicDemo2.trackingData.get(caseNum)[random][2];
 				
 		 }
-		//5 times the force
+		//5 times the velocity/0.2sec. 
 		 Vector3f force=new Vector3f(x*5,y*5,angle);
 		return force;
 	}

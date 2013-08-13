@@ -77,7 +77,7 @@ public class BasicDemo2 extends DemoApplication {
 	private static int dishRadius=215;
 	private int dishPoints=5000;
 	private int numOfTriangles=dishPoints;
-	private int dishHeight=30;
+	private int dishHeight=50;
 	
 	private static BvhTriangleMeshShape soil;
 	private static RigidBody soilBody;
@@ -115,7 +115,7 @@ public class BasicDemo2 extends DemoApplication {
 	private static int[] caseCount=new int[27];
 	private static ArrayList<Vector3f> force=new ArrayList<Vector3f>();
 	public static int counter=0;
- 	
+	public static boolean one=false;	public static boolean two=false;	public static boolean three=false;	public static boolean four=false;
 	public BasicDemo2(IGL gl) {super(gl);}  
 	public static ObjectArrayList<RigidBody> getTermites(){	return termites;}	
 	public static ArrayList<ArrayList<Float>> getPositionList(){return positionList;}	
@@ -147,21 +147,18 @@ public class BasicDemo2 extends DemoApplication {
 		//float ms = getDeltaTimeMicroseconds();
 		// step the simulation
 		if (dynamicsWorld != null) {
-			//TODO: set the time to be correct
-			if(counter==0){start_time = System.currentTimeMillis();	}
-			dynamicsWorld.stepSimulation((float)1/60); //step the world once 1/5 sec.
-            InternalTickCallback cb=new Model2(dynamicsWorld, gl);//MyInternalTickCallback ();
-			Object worldUserInfo=0;
-			
-			dynamicsWorld.setInternalTickCallback(cb, worldUserInfo);
-			dynamicsWorld.debugDrawWorld();
+			 if(counter==0){start_time = System.currentTimeMillis();	}
+			 dynamicsWorld.stepSimulation((float)1/60); //step the world once 1/5 sec.
+             InternalTickCallback cb=new Model2(dynamicsWorld, gl);//MyInternalTickCallback ();
+			 Object worldUserInfo=0;
+			 dynamicsWorld.setInternalTickCallback(cb, worldUserInfo);
+			 dynamicsWorld.debugDrawWorld();
 		}
 		time+=1;//getDeltaTimeMicroseconds()/1000000;
 		counter++;
 		renderme();
-		boolean one=false;
+
 		if(count==1000  && !one){
-			  synchronized (this) {
 					caseCount=readCaseCount(caseCountPath2);	
 					trackingData.clear();
 					for (int i=0;i<27;i++){
@@ -170,15 +167,12 @@ public class BasicDemo2 extends DemoApplication {
 						try {data = readDistributionData(caseDataPath2, i);} 
 						catch (IOException e) {e.printStackTrace();}		
 				        trackingData.add(data);
-						}
-					  one=true;
-					  }
+					}
+					one=true;		  
 		}
 		
-		boolean two=false;
 		if(count==2000  && !two){
-			 synchronized (this) {
-					caseCount=readCaseCount(caseCountPath3);	
+			         caseCount=readCaseCount(caseCountPath3);	
 					trackingData.clear(); 
 					//distribution+="   Block2:";
 					for (int i=0;i<27;i++){
@@ -190,53 +184,33 @@ public class BasicDemo2 extends DemoApplication {
 						//distribution+=(Integer.toString(Model2.getInputDis()[i]))+",";
 					}
 					 two=true;
-			}
 		}
 		
-		boolean three=false;
+
 		if(count==3000 && !three){
-			 synchronized (this) {
 					caseCount=readCaseCount(caseCountPath4);	
 					trackingData.clear();
 					//distribution+="  Block3:";
 					for (int i=0;i<27;i++){
 						int len=caseCount[i];
 						float[][] data=new float[len][3];
-						try {
-							data = readDistributionData(caseDataPath4, i);
-						} catch (IOException e) {e.printStackTrace();}		
+						try {data = readDistributionData(caseDataPath4, i);} 
+						catch (IOException e) {e.printStackTrace();}		
 						 trackingData.add(data);
 						// distribution+=(Integer.toString(Model2.getInputDis()[i]))+","; }
 				     three=true;
-					  }
-		}
-			 
-		boolean four=false;
+		             }
+		}	 
+
 		if(count==4000  && !four){
-			 synchronized (this) {
-				 toTxtFile(positionList,1);	toTxtFile(positionList,2);	toTxtFile(positionList,3);	toTxtFile(positionList,4);
-					 //distribution+="  Block4:"; 
+			        toTxtFile(positionList,1);	
+			        toTxtFile(positionList,2);	
+			        toTxtFile(positionList,3);	
+			        toTxtFile(positionList,4);
 					four=true;
 					 System.out.println(distribution); 
-			   }
-		}}
 		
-		/*
-		 * boolean five=false;
-		
-		if(count==5000  && !five)	{
-            	toTxtFile(positionList,1);	toTxtFile(positionList,2);	toTxtFile(positionList,3);	toTxtFile(positionList,4);toTxtFile(positionList,5);
-            	distribution+="block 5:"
-            	for (int i=0;i<27;i++){
-				   distribution+=(Integer.toString(Model2.getInputDis()[i]));distribution+=""; 
-				 }
-            	five=true;
-			    System.out.println(distribution); 
-			    
-	   }
-		*/
-		//glFlush();
-		//glutSwapBuffers();
+		}
 	}
 
 	
@@ -361,7 +335,7 @@ public class BasicDemo2 extends DemoApplication {
 			collisionShapes.add(terShape);
 			Transform capTransform = new Transform();
 			capTransform.setIdentity();
-			float mass3 = 5f;
+			float mass3 = 10f;
 			boolean isDynamic3 = (mass3 != 0f);
 			Vector3f localInertia3 = new Vector3f(0, 0, 0);
 			if (isDynamic3) {terShape.calculateLocalInertia(mass3, localInertia3);}

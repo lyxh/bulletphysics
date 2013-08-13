@@ -133,7 +133,7 @@ public class BasicDemo extends DemoApplication {
 	public static void increCounti(){counti++;}
 	public static boolean rotate=true;
 	public static void setRotate(boolean newVal){rotate=newVal;}
-	
+	public static boolean recordOnce=false;
     String start="";
 	@Override
 	public void clientMoveAndDisplay() {
@@ -151,13 +151,14 @@ public class BasicDemo extends DemoApplication {
 		}
 		counter++;
 		renderme();
-		if(count==1000){
+		if(count==1000 && !recordOnce){
 			toTxtFile(positionList,1);
 			start+="one=[";
 			   for (int i=0;i<27;i++){ 
 					start+=(Model1.getInputDis()[i]+","); 	    
 			    }    
 			    start+="];";
+			    recordOnce=true;
 			    System.out.println(start);
 		}
 		if(count==2000)	{		
@@ -294,7 +295,7 @@ public class BasicDemo extends DemoApplication {
 			collisionShapes.add(terShape);
 			Transform capTransform = new Transform();
 			capTransform.setIdentity();
-			float mass3 = 5f;
+			float mass3 = 10f;
 			boolean isDynamic3 = (mass3 != 0f);
 			Vector3f localInertia3 = new Vector3f(0, 0, 0);
 			if (isDynamic3) {terShape.calculateLocalInertia(mass3, localInertia3);}
@@ -348,16 +349,17 @@ public class BasicDemo extends DemoApplication {
 	 * The head and tail positions could be calculated from the position and orientation.
 	 */
 	public void toTxtFile(ArrayList<ArrayList<Float>> posList, int block_num){
+		int length=posList.get(1).size();
+		System.out.println(length);
 		for(int i=0;i<posList.size();i++){
 			ArrayList<Float> dataForOneTermite=posList.get(i);
 			String content = "";
-			for(int j=(block_num-1)*4000;j<block_num*4000;j++){
-				Float point=dataForOneTermite.get(j);
-				content=content+point.toString()+ " ";
+            for(int j=(block_num-1)*length;j<block_num*length;j++){
+				content=content+dataForOneTermite.get(j).toString()+ " ";
 			}
 			FileOutputStream fop = null;
 			File file;
-			String filename = "D:\\Yixin\\model\\1\\1\\Model1Block"+block_num+"Term"+(i+1)+".txt";
+			String filename = "D:\\Yixin\\model\\1\\Model1Block"+block_num+"Term"+(i+1)+".txt";
 	 
 			try {
 				file = new File(filename);

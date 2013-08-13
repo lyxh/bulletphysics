@@ -21,7 +21,7 @@ import com.bulletphysics.BasicDemo;
 
 
 /**
- * The model based on inspection.
+ * The model based on inspection and simple movement rules.
  * @author yixin :)   U_U
  *
  */
@@ -59,33 +59,13 @@ public static int counti;
 			BasicDemo.incrementCount();
 			increased=true;
 		  	System.out.println("Increment count to "+ count + " at time "+ time/1000);
-		  	//for every termite, record the position
-			 for (int j=0; j<termites.size(); j++) {
-			    	RigidBody body= termites.get(j);	
-					Vector3f position= new Vector3f(0,0,0);
-					//get the position and orientation of each termite                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
-					position=body.getCenterOfMassPosition(position);
-					Quat4f orientation=new Quat4f();
-					orientation=body.getOrientation(orientation);
-					//for each termite, classify the input condition
-					float center_x=position.x;
-					float center_y=position.y;
-					float angle=getAngle(orientation);
-				    //position, angle correct 
-					float terLen=BasicDemo.getTermiteLen();
-					termiteHalfLen=(terLen/2);
-					float head_x=(float) (center_x+termiteHalfLen*Math.cos(angle));
-					float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
-					float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
-					float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
-				  	posList.get(j).add(head_x);	posList.get(j).add(head_y);	posList.get(j).add(tail_x);	posList.get(j).add(tail_y);
-				  	
-			 }}
+		  	}
 		
 			 else{BasicDemo.increCounti();}
 		
 	 
 	   for (int j=0; j<termites.size(); j++) {
+		   // recordPos(j);
 	    	RigidBody body= termites.get(j);	
 			Vector3f position= new Vector3f(0,0,0);
 			//get the position and orientation of each termite                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
@@ -101,6 +81,14 @@ public static int counti;
 			float termiteRadius=BasicDemo.getTermiteRad();
 			float head_x=(float) (center_x+termiteHalfLen*Math.cos(angle));
 			float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
+			float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
+			float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
+		  	//TODO:LESS FREUQENTLY
+			//if(BasicDemo.getCounter()%5==0){
+				//posList.get(j).add(head_x);	posList.get(j).add(head_y);	posList.get(j).add(tail_x);	posList.get(j).add(tail_y);
+			//}
+		  	
+		  	
 			for (int dir=0;dir<4;dir++){
 				values[dir]=0;
 	             double point_x=head_x+range*Math.cos(angle-angleRange*dir);
@@ -158,16 +146,14 @@ public static int counti;
 			drawLine(from,right_to,color);
 
 			int caseNum=values[0]+values[1]*3+values[3]*3*3;
-					inputDistribution[caseNum]+=1;
-		
-            if (caseNum==13){
-            	System.out.println(caseNum);
-            }
+			inputDistribution[caseNum]+=1;
           
-			forcex=(float) (20+(float) (Math.random()*20-5));
+			//forcex=(float) (5+(float) (Math.random()*20-5));
+			forcex=(float)(Math.random()*20+20);
+			if(forcex<0){forcex=0;}
 			//add some randomness
-			Vector3f localforce=new Vector3f(forcex,(float) ((float) (Math.random()*10-5)),5);//+(float) (Math.random()*10-5)
-			 if ( values[3]!=0 && values[1]!=0 && values[0]!=0){localforce=new Vector3f(-10,0,5);/*go back*/ }
+			Vector3f localforce=new Vector3f(forcex,0,5);//+(float) (Math.random()*10-5)
+			 if ( values[3]!=0 && values[1]!=0 && values[0]!=0){localforce=new Vector3f(-20,0,5);/*go back*/ }
 			
 			
 			Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, 4);
@@ -179,9 +165,10 @@ public static int counti;
 			//0.1:2.94255;0.125:2.89188, 0.25: 2.6516; 0.5:2.214; 0.75:1.854,1:1.57, 1.25:1.35; 1.5:1.176; 
 	     	//2:0.9272; 2.5:0.76;(45)5:0.394; 10:0.2; 20:0.1; 30:0.0666;40:0.05;50:0.04  
 			boolean rotate=false;
-			//TODO: does not turn away from the wall enough
-			if(increased){//get the new angle and the force
-			     	
+
+			if(increased){
+				//get the new angle and the force
+				    posList.get(j).add(head_x);	posList.get(j).add(head_y);	posList.get(j).add(tail_x);	posList.get(j).add(tail_y);
 			    	double random=Math.random()*100;
 			    	double cut=0;
 			    	double r=Math.random();
@@ -197,40 +184,59 @@ public static int counti;
 								else{rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}
 							}
 						}
-						if(values[3]!=0 && values[1]!=0){localforce=new Vector3f(-40,0,5);rotate=false;}
+						if(values[3]!=0 && values[1]!=0){localforce=new Vector3f(-20,0,5);rotate=false;}
 					}
 			       
 			    else{ //when the front is empty
-			    
-			    	 
 			    		 //right not empty, left empty, turn to left a bit
 						 if ( values[3]==2 && values[1]==0 ){ rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, angle2);rotation.inverse();  }	
 						 if ( values[3]==1 && values[1]==0){ rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);rotation.inverse();  }	
 						 //left not empty, right empty, turn to right a bit
 						 if ( values[1]==2 && values[3]==0){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, angle2);}  //if nothing on the right, turn right:positive
 						 if ( values[1]==1 && values[3]==0){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}  //if nothing on the right, turn right:positive
-						 
-					 if ( values[3]!=0 && values[1]!=0){localforce=new Vector3f(-40,0,5);rotate=false; }
+					 if ( values[3]!=0 && values[1]!=0){localforce=new Vector3f(-20, 0,5);rotate=false; }
 			    	
-		          }
-		         
-					if(rotate){
-							localforce=new Vector3f(0,0,5);
+		          }			 
+                       if(rotate){
+							localforce=new Vector3f(0,0,10);
 							Quat4f newAngle=new Quat4f();
 							newAngle=body.getOrientation(newAngle);
 							rotation.mul(newAngle);
 						    tr.setRotation(rotation);
 					        body.setCenterOfMassTransform(tr);
-
 				    }
            }
-			Vector3f globalForce=rotate(angle,localforce);
-			//drawLine(position,new Vector3f(position.x+globalForce.x,position.y+globalForce.y,position.z ),new Vector3f(1,1,0));
-			body.setLinearVelocity(globalForce);			       
+			  Vector3f globalForce=rotate(angle,localforce);
+			  globalForce.z=10;
+			  body.setLinearVelocity(globalForce);
            }
 		}
 	
 	
+	private void recordPos(int j) {
+		ObjectArrayList<RigidBody> termites= BasicDemo.getTermites();
+		ArrayList<ArrayList<Float>> posList=BasicDemo.getPositionList();
+		RigidBody body= termites.get(j);	
+		Vector3f position= new Vector3f(0,0,0);
+		//get the position and orientation of each termite                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+		position=body.getCenterOfMassPosition(position);
+		Quat4f orientation=new Quat4f();
+		orientation=body.getOrientation(orientation);
+		//for each termite, classify the input condition
+		float center_x=position.x;
+		float center_y=position.y;
+		float angle=getAngle(orientation);
+	    //position, angle correct 
+		float terLen=BasicDemo.getTermiteLen();
+		termiteHalfLen=(terLen/2);
+		float head_x=(float) (center_x+termiteHalfLen*Math.cos(angle));
+		float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
+		float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
+		float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
+	  	posList.get(j).add(head_x);	posList.get(j).add(head_y);	posList.get(j).add(tail_x);	posList.get(j).add(tail_y);
+		
+	}
+
 	private void drawLine(Vector3f from, Vector3f to,Vector3f color) {
 		gl.glBegin(GL_LINES);
 		gl.glColor3f(color.x, color.y, color.z);
