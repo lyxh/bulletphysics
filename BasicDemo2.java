@@ -64,6 +64,7 @@ import org.lwjgl.util.vector.Quaternion;
 import static com.bulletphysics.demos.opengl.IGL.*;
 
 /**
+ * The demo that associates with model 2
  */
 public class BasicDemo2 extends DemoApplication {
 	private static Long start_time;

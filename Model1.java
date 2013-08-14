@@ -203,30 +203,8 @@ public class Model1 extends InternalTickCallback{
 	}
 	
 	
-	private void recordPos(int j) {
-		ObjectArrayList<RigidBody> termites= BasicDemo.getTermites();
-		ArrayList<ArrayList<Float>> posList=BasicDemo.getPositionList();
-		RigidBody body= termites.get(j);	
-		Vector3f position= new Vector3f(0,0,0);
-		//get the position and orientation of each termite                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
-		position=body.getCenterOfMassPosition(position);
-		Quat4f orientation=new Quat4f();
-		orientation=body.getOrientation(orientation);
-		//for each termite, classify the input condition
-		float center_x=position.x;
-		float center_y=position.y;
-		float angle=getAngle(orientation);
-	    //position, angle correct 
-		float terLen=BasicDemo.getTermiteLen();
-		termiteHalfLen=(terLen/2);
-		float head_x=(float) (center_x+termiteHalfLen*Math.cos(angle));
-		float head_y=(float) (center_y+termiteHalfLen*Math.sin(angle));
-		float tail_x=(float) (center_x-termiteHalfLen*Math.cos(angle));
-		float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angle));
-	  	posList.get(j).add(head_x);	posList.get(j).add(head_y);	posList.get(j).add(tail_x);	posList.get(j).add(tail_y);
-		
-	}
 
+	
 	private void drawLine(Vector3f from, Vector3f to,Vector3f color) {
 		gl.glBegin(GL_LINES);
 		gl.glColor3f(color.x, color.y, color.z);
@@ -236,23 +214,6 @@ public class Model1 extends InternalTickCallback{
 	}
 
 
-	 
-	 /**
-	  * Rotate a vector(x,y) by some degrees angle
-	  * @param angle
-	  * @param x
-	  * @param y
-	  * @return
-	  */
-	 public Float[] rotate(float angle,float x,float y){
-	      Double originalAngle=Math.atan2(y,x);
-	      Double newAngle=angle+originalAngle;
-	      Float len= (float) Math.sqrt(x*x+y*y);
-	      Float[] result=new Float[2];
-	      result[0]= (float) ((float)len*Math.cos(newAngle));
-	      result[1]=(float) ((float)len*Math.sin(newAngle));
-	      return result;
-	   }
 	 
 	 
 	 public Vector3f rotate(float angle,Vector3f v){
@@ -314,16 +275,7 @@ public class Model1 extends InternalTickCallback{
 			return angleChange;
 	  }
 	  
-
-	   public static Vector3f getGlobalForce(Vector3f localforce, RigidBody body){
-		    Transform t=new Transform();
-			t=body.getMotionState().getWorldTransform(t);
-			Vector3f globalForce=new Vector3f(0,0,0);
-			globalForce.x=localforce.dot(new Vector3f(t.basis.m00, t.basis.m10, 0));
-			globalForce.y=localforce.dot(new Vector3f(t.basis.m01, t.basis.m11, 0));
-			globalForce.z=1;//localforce.dot(new Vector3f(t.basis.m02, t.basis.m12, t.basis.m22));
-	        return globalForce;
-	        }
+ 
 	   
 	}
 
