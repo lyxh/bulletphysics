@@ -74,12 +74,14 @@ public class BasicDemo extends DemoApplication {
 	private ConstraintSolver solver;
 	private DefaultCollisionConfiguration collisionConfiguration;
 	
+	//initialize parameters for the dish
 	private RigidBody dish;       
 	private static int dishRadius=215;
 	private int dishPoints=5000;
 	private int numOfTriangles=dishPoints;
 	private int dishHeight=30;
 	
+	//the mesh of the soil plane
 	private static BvhTriangleMeshShape soil;
 	private static RigidBody soilBody;
 	private static ByteBuffer gVertices;
@@ -88,7 +90,7 @@ public class BasicDemo extends DemoApplication {
 	private static int NUM_VERTS_Y = NUM_VERTS_X ;
 	private static int totalVerts = NUM_VERTS_X*NUM_VERTS_Y;
 	
-
+    //initialization for termites
 	private static ObjectArrayList<RigidBody> termites= new ObjectArrayList<RigidBody>();
 	private static int numOfTermites=19;
 	private static int[] states=new int[numOfTermites];
@@ -127,6 +129,7 @@ public class BasicDemo extends DemoApplication {
 		final long diff=endTime-start_time;
 		return diff;
 	}
+	public static ArrayList<Double> randomNums=new ArrayList<Double>();
 	public static int counti=0;
 	public static void clearCounti(){counti=0;}	
 	public static int getCounti(){return counti;}
@@ -138,47 +141,42 @@ public class BasicDemo extends DemoApplication {
 	@Override
 	public void clientMoveAndDisplay() {
 		gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		//float ms = getDeltaTimeMicroseconds();
 		// step the simulation
 		if (dynamicsWorld != null) {
-			//TODO: set the time to be correct
+			//Set the simluation start time
 			if(counter==0){	start_time = System.currentTimeMillis();}
-			dynamicsWorld.stepSimulation(1/5f); //step the world once 1/5 sec.//getDeltaTimeMicroseconds()/ 1000000f
-            InternalTickCallback cb=new Model1(dynamicsWorld, gl);//MyInternalTickCallback ();
+			dynamicsWorld.stepSimulation(1/60f); //step the world once 1/60 sec
+            InternalTickCallback cb=new Model1(dynamicsWorld, gl);//use model 1
 			Object worldUserInfo=0;	
 			dynamicsWorld.setInternalTickCallback(cb, worldUserInfo);
 			dynamicsWorld.debugDrawWorld();
 		}
 		counter++;
 		renderme();
+		//When the count reaches 1000, i.e. 200secs have elapsed since the start of the simulation
 		if(count==1000 && !recordOnce){
+			//save the position data of the first block to txt file
+			disToTxtFile(randomNums);
 			toTxtFile(positionList,1);
-			start+="one=[";
-			   for (int i=0;i<27;i++){ 
-					start+=(Model1.getInputDis()[i]+","); 	    
-			    }    
-			    start+="];";
-			    recordOnce=true;
-			    System.out.println(start);
+			recordOnce=true;
 		}
+		//When the count reaches 2000, i.e. 400secs have elapsed since the start of the simulation
 		if(count==2000)	{		
-            		toTxtFile(positionList,2);	//toTxtFile(positionList,3);	toTxtFile(positionList,4);
-			    start+="two=[";
-			    for (int i=0;i<27;i++){ 
-					start+=(Model1.getInputDis()[i]+","); 	    
-			    }    
-			    start+="];";
-			 System.out.println(start);
+            	toTxtFile(positionList,2);	//save the position data of the second block to txt file
 	   }
 	}
 
 	
+	
+
+
 	@Override
 	public void displayCallback() {
 		gl.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		renderme();
 		// optional but useful: debug drawing to detect problems
 		if (dynamicsWorld != null) {
+			//draw the world
 			dynamicsWorld.debugDrawWorld();
 		}
 		//glFlush();
@@ -186,7 +184,9 @@ public class BasicDemo extends DemoApplication {
 	}
 
 
-	
+	/**
+	 * initialization of the world
+	 */
 	public void initPhysics() throws IOException {
 		setCameraDistance(250f);
 		
@@ -198,13 +198,12 @@ public class BasicDemo extends DemoApplication {
 		// the default constraint solver. For parallel processing you can use a different solver (see Extras/BulletMultiThreaded)
 		SequentialImpulseConstraintSolver sol = new SequentialImpulseConstraintSolver();
 		solver = sol;		
-		// TODO: needed for SimpleDynamicsWorld
 		//sol.setSolverMode(sol.getSolverMode() & ~SolverMode.SOLVER_CACHE_FRIENDLY.getMask());		
 		dynamicsWorld = new DiscreteDynamicsWorld(dispatcher, broadphase, solver, collisionConfiguration);
 		dynamicsWorld.setGravity(new Vector3f(0f, 0f, 20f));
-        
 		
-		CollisionShape groundShape = new StaticPlaneShape(new Vector3f(0, 0, -1), 0);
+		//adding in a ground plane
+        CollisionShape groundShape = new StaticPlaneShape(new Vector3f(0, 0, -1), 0);
 		collisionShapes.add(groundShape);
 		Transform groundTransform = new Transform();
 		groundTransform.setIdentity();
@@ -217,7 +216,7 @@ public class BasicDemo extends DemoApplication {
 		dynamicsWorld.addRigidBody(body);
 		
 		
-		//add in the triangle mesh for dish border
+		//add in the triangle mesh for the border of the dish 
 		ByteBuffer gVertices2;
 		ByteBuffer gIndices2;
         gVertices2 = ByteBuffer.allocateDirect(dishPoints*4*3).order(ByteOrder.nativeOrder());	
@@ -252,7 +251,7 @@ public class BasicDemo extends DemoApplication {
 		
 		
 		
-        //add in soil at the bottom
+        //add in the soil that lie at the bottom of the dish to the world.
 		int totalTriangles = 2 * (NUM_VERTS_X - 1) * (NUM_VERTS_Y - 1);
 		gVertices = ByteBuffer.allocateDirect(totalVerts * 3 * 4).order(ByteOrder.nativeOrder());
 		gIndices = ByteBuffer.allocateDirect(totalTriangles * 3 * 4).order(ByteOrder.nativeOrder());
@@ -289,7 +288,7 @@ public class BasicDemo extends DemoApplication {
 
 		
 			
-		//create numOfTermites capsules that align with the x axis.
+		//create numOfTermites capsules that align with the x axis and add them to the world
 		for (int i1=0; i1<numOfTermites;i1++){ 
 			CapsuleShapeX terShape = new CapsuleShapeX(termiteRadius, termiteLen);
 			collisionShapes.add(terShape);
@@ -300,7 +299,7 @@ public class BasicDemo extends DemoApplication {
 			Vector3f localInertia3 = new Vector3f(0, 0, 0);
 			if (isDynamic3) {terShape.calculateLocalInertia(mass3, localInertia3);}
 			
-			//initialize the termite location at random. Add the position to positionList
+			//initialize the termite location at random. 
 			double radius = (Math.random()*(dishRadius-20)); //Math.random() returns a double value between 0.0 and 1.0 between 0 and the radius of the circle
 			float angle = (float) (Math.random()*2*Math.PI); // between 0 and 360 (degrees)  
 			float x =(float) (radius*Math.cos(angle));
@@ -312,19 +311,16 @@ public class BasicDemo extends DemoApplication {
 			float randomAngle=(float) (Math.random()*2*Math.PI);
 			capTransform.basis.rotZ(randomAngle);
 			
-
-	      
 			DefaultMotionState myMotionState3 = new DefaultMotionState(capTransform);
 			RigidBodyConstructionInfo rbInfo3 = new RigidBodyConstructionInfo(mass3, myMotionState3, terShape, localInertia3);
 			RigidBody body3 = new RigidBody(rbInfo3);
 			body3.setSleepingThresholds((float)0.0, (float)0.0);
 			//body3.setAngularFactor(new Vector3f(0,0, 0.0)); could not rotate around itself!
-          // body3.setFriction(0);
-			states[i1]=0;
+           // body3.setFriction(0);
 			termites.add(body3);
 			dynamicsWorld.addRigidBody(body3);
 			
-			// Add initial orientation to the orientationList
+			// Add the initial orientation of the termite to the orientationList
 			Quat4f ori=new Quat4f();
 			ori=body3.getOrientation(ori);
 			float angl=getAngle(ori);
@@ -337,6 +333,7 @@ public class BasicDemo extends DemoApplication {
 			float tail_y=(float) (center_y-termiteHalfLen*Math.sin(angl));
 			
 			ArrayList<Float> posList=new ArrayList<Float>();
+			//Add the position to positionList
 			posList.add(head_x);	posList.add(head_y);	posList.add(tail_x);	posList.add(tail_y);
 			positionList.add(posList);
 		}
@@ -344,9 +341,11 @@ public class BasicDemo extends DemoApplication {
 	
 	}
 	
+
 	/**
-	 * Output the center position and orientation of each termite to a txt file. (positionList and orientationList)
-	 * The head and tail positions could be calculated from the position and orientation.
+	 * Output the head and tail position each termite to a txt file. (in the same format as the tracking data)
+	 * @param posList:the whole list of list for each termite
+	 * @param block_num: the number of the block
 	 */
 	public void toTxtFile(ArrayList<ArrayList<Float>> posList, int block_num){
 		int length=posList.get(1).size();
@@ -360,34 +359,59 @@ public class BasicDemo extends DemoApplication {
 			FileOutputStream fop = null;
 			File file;
 			String filename = "D:\\Yixin\\model\\1\\Model1Block"+block_num+"Term"+(i+1)+".txt";
-	 
-			try {
+	        try {
 				file = new File(filename);
 				fop = new FileOutputStream(file);
 	             if (!file.exists()) {file.createNewFile();}
-	 
 				// get the content in bytes
-				byte[] contentInBytes = content.getBytes();
-	 
+				byte[] contentInBytes = content.getBytes();	 
 				fop.write(contentInBytes);
 				fop.flush();
 				fop.close();
-	 
 			} catch (IOException e) {
 				e.printStackTrace();
 			} finally {
-				try {
-					if (fop != null) {
-						fop.close();
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				try {if (fop != null) {fop.close();}} 
+				catch (IOException e) {e.printStackTrace();}
 			}
 		}
 	}
 
 	
+	/**
+	 * Save the posList to the txt file
+	 * @param posList
+	 */
+	private void disToTxtFile(ArrayList<Double> posList) {
+			String data="";
+			for(int i=0;i<posList.size();i++){data+=posList.get(i).toString()+ " ";}
+			FileOutputStream fop = null;
+			File file;
+			String filename = "D:\\Yixin\\model\\1\\RandomNumberDis.txt";
+	        try {
+				file = new File(filename);
+				fop = new FileOutputStream(file);
+	             if (!file.exists()) {file.createNewFile();}
+				// get the content in bytes
+				byte[] contentInBytes = data.getBytes();	 
+				fop.write(contentInBytes);
+				fop.flush();
+				fop.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				try {if (fop != null) {fop.close();}} 
+				catch (IOException e) {e.printStackTrace();}
+			}
+	}
+	
+	
+	/**
+	 * Start the simulation
+	 * @param args
+	 * @throws LWJGLException
+	 * @throws IOException
+	 */
 	public static void main(String[] args) throws LWJGLException, IOException {
 		BasicDemo ccdDemo = new BasicDemo(LWJGL.getGL());
 		ccdDemo.initPhysics();
@@ -398,9 +422,9 @@ public class BasicDemo extends DemoApplication {
 
 
 	/**
-	  * 
-	  * @param orientation
-	  * @return
+	  * Return the angle (orientation of the termite) from the quaternion.
+	  * @param orientation a quaternion that represents termite's orientation
+	  * @return the angle (parallel to the xy plane)
 	  */
 	  public static float getAngle(Quat4f orientation){
 		    float w=orientation.w;
@@ -411,6 +435,6 @@ public class BasicDemo extends DemoApplication {
 			euler.x=(float) Math.atan2(2.0 * (w*x + y*z),1-2*( y*y + x*x));
 			euler.y=(float) Math.atan2(2.0 * (w*z + x*y),1-2*( y*y + z*z));
 			euler.z=(float) Math.asin(2.0 * (w*y - x*z));
-		    return euler.y;		  //we want yaw
+		    return euler.y;		  //we want yaw! 
 	  }
 }
