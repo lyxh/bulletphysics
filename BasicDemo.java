@@ -158,7 +158,7 @@ public class BasicDemo extends DemoApplication {
 		if(count==1000 && !recordOnce){
 			//save the position data of the first block to txt file
 			disToTxtFile(randomNums);
-			toTxtFile(positionList,1);
+			toTxtFile(positionList,2);
 			recordOnce=true;
 		}
 		//When the count reaches 2000, i.e. 400secs have elapsed since the start of the simulation
@@ -295,7 +295,7 @@ public class BasicDemo extends DemoApplication {
 			collisionShapes.add(terShape);
 			Transform capTransform = new Transform();
 			capTransform.setIdentity();
-			float mass3 = 10f;
+			float mass3 = 2f;
 			boolean isDynamic3 = (mass3 != 0f);
 			Vector3f localInertia3 = new Vector3f(0, 0, 0);
 			if (isDynamic3) {terShape.calculateLocalInertia(mass3, localInertia3);}
@@ -354,12 +354,13 @@ public class BasicDemo extends DemoApplication {
 		for(int i=0;i<posList.size();i++){
 			ArrayList<Float> dataForOneTermite=posList.get(i);
 			String content = "";
-            for(int j=(block_num-1)*length;j<block_num*length;j++){
+           // for(int j=(block_num-1)*length;j<block_num*length;j++){
+			for(int j=0;j<length;j++){
 				content=content+dataForOneTermite.get(j).toString()+ " ";
 			}
 			FileOutputStream fop = null;
 			File file;
-			String filename = "D:\\Yixin\\model\\1\\Model1Block"+block_num+"Term"+(i+1)+".txt";
+			String filename = "D:\\Yixin\\model\\1\\2\\Model1Block"+block_num+"Term"+(i+1)+".txt";
 	        try {
 				file = new File(filename);
 				fop = new FileOutputStream(file);

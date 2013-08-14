@@ -133,41 +133,48 @@ public class Model1 extends InternalTickCallback{
 								float angleChange=getAngleChange(angle, dis_angle);
 								int direction=getDirectionFromAngle((double)angleChange);
 								values[direction]=2;	
-								
 								float dis_angle2=(float) Math.atan2(other_y-head_y,other_x-head_x);
 								float angleChange2=getAngleChange(angle, dis_angle2);
 								int direction2=getDirectionFromAngle((double)angleChange2);
-								values[direction2]=2;	
+								values[direction2]=2;
+								
+								float dis_angle3=(float) Math.atan2(other_tail_y-head_y,other_tail_x-head_x);
+								float angleChange3=getAngleChange(angle, dis_angle3);
+								int direction3=getDirectionFromAngle((double)angleChange3);
+								values[direction3]=2;	
 							}
 						}
 					}
 					int caseNum=values[0]+values[1]*3+values[3]*3*3;
+					//System.out.println(caseNum);
 					inputDistribution[caseNum]+=1;
 					Random a= new Random();
-					forcex=(float)(a.nextDouble()*50+5);//old 0-40
+					forcex=(float)(a.nextDouble()*75-16.5);//Block 2: hard to get distribution OK.
+					//Block 1: 65 -7.5 0.21, 60-5, really good! 70-10  only 0.01
 					//could also remember all the random numbers. System.out.println(forcex);
-					if(forcex<0){forcex=20;}				
-					Vector3f localforce=new Vector3f(forcex,(float) (Math.random()*10-5),5);//+(float) (Math.random()*10-5)
-					 if ( values[3]!=0 && values[1]!=0 && values[0]!=0){localforce=new Vector3f(-20,0,5);/*go back*/ }	
+					if(forcex<0){forcex=0;}		//maybe need this?		
+					Vector3f localforce=new Vector3f(forcex,0,5);
 					Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, 4);
 					Transform tr=new Transform();
 					tr=body.getCenterOfMassTransform(tr);
-					float rotatedAngle=(float) ((float)3);   //0.15-0.07, approximately 10 degree. Want:0.15,8 degree
-					float angle2=(float) ((float)3); 
+					float rotatedAngle=((float)3.5);   //0.15-0.07, approximately 10 degree. Want:0.15,8 degree
+					float angle2=((float)3.5); 
 				    //	rotatedAngle=rotatedAngle/BasicDemo.getConti();
 					//0.1:2.94255;0.125:2.89188, 0.25: 2.6516; 0.5:2.214; 0.75:1.854,1:1.57, 1.25:1.35; 1.5:1.176; 
 			     	//2:0.9272; 2.5:0.76;(45)5:0.394; 10:0.2; 20:0.1; 30:0.0666;40:0.05;50:0.04  
+					//Need to follow the wall more!
 					boolean rotate=false;
-		            double random=Math.random()*100;
-			    	double cut=0;
-			    	double r=Math.random();
+					double cut=0.88;
+					double r=Math.random();
+					double random=Math.random();
 					//first, check for front .inverse turn left
 			        if (values[0]!=0 ){
-						if (values[3]==0 || values[1]==0 ){
-			                rotate=true;
-			                if (values[3]==0  ){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); }  //if nothing on the right, turn right:positive
-			                if (values[1]==0 ) { rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}		 //if nothing on the left, turn left
+						if (values[3]==0 || values[1]==0 ){			
+			                
+			                if (values[3]==0  && random>cut){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); }  //if nothing on the right, turn right:positive
+			                if (values[1]==0  && random>cut) { rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}		 //if nothing on the left, turn left
 							if (values[3]==0 && values[1]==0){
+								rotate=true;
 								if (r>0.5){rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle); rotation.inverse();}
 								else{rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}
 							}
@@ -177,27 +184,30 @@ public class Model1 extends InternalTickCallback{
 			       
 			        else{ //when the front is empty
 			    		 //right not empty, left empty, turn to left a bit
-						 if ( values[3]==2 && values[1]==0 ){ rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, angle2);rotation.inverse();  }	
-						 if ( values[3]==1 && values[1]==0){ rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);rotation.inverse();  }	
+						 if ( values[3]!=0 && values[1]==0 ){ rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0,  rotatedAngle);rotation.inverse();  }	
 						 //left not empty, right empty, turn to right a bit
-						 if ( values[1]==2 && values[3]==0){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, angle2);}  //if nothing on the right, turn right:positive
-						 if ( values[1]==1 && values[3]==0){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, rotatedAngle);}  //if nothing on the right, turn right:positive
-					     if ( values[3]!=0 && values[1]!=0){localforce=new Vector3f(-20, 0,5);rotate=false; }
+						 if ( values[1]!=0 && values[3]==0){rotate=true;rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0,  rotatedAngle);} 
+						 if ( values[3]!=0 && values[1]!=0){localforce=new Vector3f(-20, 0,5);rotate=false; }
 			    	
-		             }			 
+		             }	
+		           	 
 	                 if(rotate){
-	                	    forcex=0;
-							localforce=new Vector3f(0,0,10);
+	                	    //System.out.println("rotate");
+							localforce=new Vector3f(0,0,20);
 							Quat4f newAngle=new Quat4f();
 							newAngle=body.getOrientation(newAngle);
 							rotation.mul(newAngle);
 						    tr.setRotation(rotation);
 					        body.setCenterOfMassTransform(tr);
 				     }
-				     BasicDemo.randomNums.add((double) forcex);
-					 Vector3f globalForce=rotate(angle,localforce);
-					 globalForce.z=10;
-					 body.setLinearVelocity(globalForce);
+	              
+	             		                 
+						     BasicDemo.randomNums.add((double) forcex);
+							 Vector3f globalForce=rotate(angle,localforce);
+							 globalForce.z=10;
+							 body.setLinearVelocity(globalForce);
+							 body.setAngularVelocity(rotate(angle,new Vector3f(0,0,0)));// prevent from rotation here : prevent self-spinning if colliding!
+	                 
 				}//end of if(increased)
 	     }//end of for each termite
 	}
@@ -245,9 +255,9 @@ public class Model1 extends InternalTickCallback{
 	
 
 	/**
-	  * 
-	  * @param orientation
-	  * @return
+	  * Return the angle of the termite, given the quaternion
+	  * @param a quaternion that represents the orientation of the termite
+	  * @return the angle lying on the xy plane.
 	  */
 	  public static float getAngle(Quat4f orientation){
 		    float w=orientation.w;
@@ -266,7 +276,7 @@ public class Model1 extends InternalTickCallback{
 	   * Calculate the angle difference between angle 2 and angle 1. Angle2-angle1
 	   * @param angle1
 	   * @param angle2
-	   * @return
+	   * @return Angle2-angle1, in the range of [-pi,pi]
 	   */
 	  public float getAngleChange(float angle1, float angle2){
 		  float angleChange=angle2-angle1;

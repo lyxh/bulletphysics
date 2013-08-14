@@ -233,9 +233,10 @@ public class Model2 extends InternalTickCallback{
 					 
 			        //since we already rotated the termite, get the force in global coordinates from the local force and the new orientation of the termite   
 					Vector3f globalForce=rotate(newA,localforce);
-					globalForce.z=20;
+					globalForce.z=30;
 					//drawLine(position,new Vector3f(position.x+globalForce.x,position.y+globalForce.y,position.z ),new Vector3f(1,1,0));
 					body.setLinearVelocity(globalForce);
+					body.setAngularVelocity(rotate(angle,new Vector3f(0,0,0)));// prevent from rotation here : prevent self-spinning if colliding!
 			    }
 		 }
 	}
