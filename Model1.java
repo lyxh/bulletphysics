@@ -152,8 +152,8 @@ public class Model1 extends InternalTickCallback{
 					Quat4f rotation=new Quat4f((float)0.0, (float)0.0, (float)1.0, 4);
 					Transform tr=new Transform();
 					tr=body.getCenterOfMassTransform(tr);
-					float rotatedAngle=(float) ((float)5);   //0.15-0.07, approximately 10 degree. Want:0.15,8 degree
-					float angle2=(float) ((float)5); 
+					float rotatedAngle=(float) ((float)3);   //0.15-0.07, approximately 10 degree. Want:0.15,8 degree
+					float angle2=(float) ((float)3); 
 				    //	rotatedAngle=rotatedAngle/BasicDemo.getConti();
 					//0.1:2.94255;0.125:2.89188, 0.25: 2.6516; 0.5:2.214; 0.75:1.854,1:1.57, 1.25:1.35; 1.5:1.176; 
 			     	//2:0.9272; 2.5:0.76;(45)5:0.394; 10:0.2; 20:0.1; 30:0.0666;40:0.05;50:0.04  
