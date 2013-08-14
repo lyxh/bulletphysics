@@ -149,7 +149,7 @@ public class Model1 extends InternalTickCallback{
 					//System.out.println(caseNum);
 					inputDistribution[caseNum]+=1;
 					Random a= new Random();
-					forcex=(float)(a.nextDouble()*75-16.5);//Block 2: hard to get distribution OK.
+					forcex=(float)(a.nextDouble()*75-16);//Block 2: hard to get distribution OK.
 					//Block 1: 65 -7.5 0.21, 60-5, really good! 70-10  only 0.01
 					//could also remember all the random numbers. System.out.println(forcex);
 					if(forcex<0){forcex=0;}		//maybe need this?		
